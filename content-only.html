@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CargoOS — Logistics Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue: #3B82F6;
+  --blue-dim: rgba(59,130,246,0.12);
+  --blue-border: rgba(59,130,246,0.3);
+  --bg: #0F1117; --bg-2: #161923; --bg-3: #1D2230; --bg-4: #242A38;
+  --border: rgba(255,255,255,0.07); --border-strong: rgba(255,255,255,0.12);
+  --text-1: #F1F3F7; --text-2: #9BA3B5; --text-3: #6B7385;
+  --green: #22C55E; --amber: #F59E0B; --red: #EF4444; --purple: #A78BFA;
+  --green-dim: rgba(34,197,94,0.1); --amber-dim: rgba(245,158,11,0.1);
+  --red-dim: rgba(239,68,68,0.1); --purple-dim: rgba(167,139,250,0.1);
+  --sidebar-w: 240px; --sidebar-collapsed: 60px;
+  --radius: 10px; --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+[data-theme="light"] {
+  --bg: #F4F5F8; --bg-2: #FFFFFF; --bg-3: #F0F1F5; --bg-4: #E8EAEF;
+  --border: rgba(0,0,0,0.07); --border-strong: rgba(0,0,0,0.12);
+  --text-1: #111827; --text-2: #4B5563; --text-3: #9CA3AF;
+  --blue-dim: rgba(59,130,246,0.08);
+}
+
+html, body { height: 100%; background: var(--bg); color: var(--text-1); font-family: 'DM Sans', sans-serif; font-size: 14px; line-height: 1.5; overflow: hidden; }
+
+/* LAYOUT */
+.shell { display: flex; height: 100vh; }
+
+/* SIDEBAR */
+.sidebar { width: var(--sidebar-w); min-width: var(--sidebar-w); height: 100vh; background: var(--bg-2); border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: width var(--transition), min-width var(--transition); overflow: hidden; position: relative; z-index: 10; }
+.sidebar.collapsed { width: var(--sidebar-collapsed); min-width: var(--sidebar-collapsed); }
+.sidebar-header { height: 56px; display: flex; align-items: center; padding: 0 16px; border-bottom: 1px solid var(--border); gap: 10px; flex-shrink: 0; }
+.logo-mark { width: 28px; height: 28px; background: var(--blue); border-radius: 7px; display: grid; place-items: center; flex-shrink: 0; color: white; }
+.logo-mark svg { width: 16px; height: 16px; }
+.logo-text { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; transition: opacity var(--transition); }
+.sidebar.collapsed .logo-text { opacity: 0; pointer-events: none; }
+.toggle-btn { position: absolute; top: 14px; right: -12px; width: 24px; height: 24px; background: var(--bg-3); border: 1px solid var(--border-strong); border-radius: 50%; cursor: pointer; display: grid; place-items: center; color: var(--text-3); transition: background var(--transition), color var(--transition), transform var(--transition); z-index: 20; }
+.toggle-btn:hover { background: var(--bg-4); color: var(--text-1); }
+.sidebar.collapsed .toggle-btn { transform: rotate(180deg); }
+.toggle-btn svg { width: 12px; height: 12px; }
+.sidebar-nav { flex: 1; padding: 12px 8px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; overflow-x: hidden; }
+.nav-section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); padding: 8px 8px 4px; white-space: nowrap; overflow: hidden; transition: opacity var(--transition); }
+.sidebar.collapsed .nav-section-label { opacity: 0; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 8px; border-radius: 7px; cursor: pointer; color: var(--text-2); transition: background var(--transition), color var(--transition); white-space: nowrap; overflow: hidden; position: relative; }
+.nav-item:hover { background: var(--bg-3); color: var(--text-1); }
+.nav-item.active { background: var(--blue-dim); color: var(--blue); }
+.nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
+.nav-label { font-size: 13.5px; font-weight: 500; transition: opacity var(--transition); }
+.sidebar.collapsed .nav-label { opacity: 0; }
+.nav-badge { margin-left: auto; font-size: 10px; font-weight: 600; background: var(--blue); color: white; padding: 1px 6px; border-radius: 20px; transition: opacity var(--transition); }
+.sidebar.collapsed .nav-badge { opacity: 0; }
+.sidebar-footer { padding: 12px 8px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #3B82F6, #7C3AED); display: grid; place-items: center; flex-shrink: 0; font-size: 12px; font-weight: 600; color: white; }
+.user-info { overflow: hidden; transition: opacity var(--transition); }
+.sidebar.collapsed .user-info { opacity: 0; }
+.user-name { font-size: 13px; font-weight: 500; }
+.user-role { font-size: 11px; color: var(--text-3); }
+
+/* MAIN */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+/* TOPBAR */
+.topbar { height: 56px; display: flex; align-items: center; gap: 12px; padding: 0 24px; border-bottom: 1px solid var(--border); background: var(--bg-2); flex-shrink: 0; }
+.topbar-title { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; flex: 1; }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.btn { display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 7px; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--border-strong); background: var(--bg-3); color: var(--text-1); transition: background var(--transition), border-color var(--transition); }
+.btn:hover { background: var(--bg-4); }
+.btn.primary { background: var(--blue); border-color: var(--blue); color: white; }
+.btn.primary:hover { background: #2563EB; border-color: #2563EB; }
+.btn svg { width: 14px; height: 14px; }
+.icon-btn { width: 34px; height: 34px; border-radius: 7px; background: var(--bg-3); border: 1px solid var(--border); display: grid; place-items: center; cursor: pointer; color: var(--text-2); transition: background var(--transition), color var(--transition); }
+.icon-btn:hover { background: var(--bg-4); color: var(--text-1); }
+.icon-btn svg { width: 16px; height: 16px; }
+
+/* PAGE CONTAINERS */
+.page { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+.page.active { display: flex; }
+
+/* CONTENT SCROLL */
+.content { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+.content::-webkit-scrollbar { width: 6px; }
+.content::-webkit-scrollbar-track { background: transparent; }
+.content::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+
+/* STAT CARDS */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.stat-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: border-color var(--transition); animation: fadeUp 0.4s ease both; }
+.stat-card:nth-child(1){animation-delay:.05s} .stat-card:nth-child(2){animation-delay:.1s} .stat-card:nth-child(3){animation-delay:.15s} .stat-card:nth-child(4){animation-delay:.2s}
+.stat-card:hover { border-color: var(--border-strong); }
+.stat-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+.stat-icon { width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; }
+.stat-icon svg { width: 18px; height: 18px; }
+.stat-change { font-size: 12px; font-weight: 500; padding: 3px 8px; border-radius: 20px; }
+.stat-change.up { background: var(--green-dim); color: var(--green); }
+.stat-change.down { background: var(--red-dim); color: var(--red); }
+.stat-value { font-size: 28px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; margin-bottom: 4px; }
+.stat-label { font-size: 12.5px; color: var(--text-3); }
+.progress-bar { height: 3px; background: var(--bg-4); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+.progress-fill { height: 100%; border-radius: 2px; background: var(--blue); }
+
+/* CARD */
+.card { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.card-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.card-title { font-size: 14px; font-weight: 600; }
+.card-subtitle { font-size: 12px; color: var(--text-3); margin-top: 1px; }
+
+/* BADGE */
+.badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 500; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+.badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.badge.transit { background: var(--blue-dim); color: var(--blue); }
+.badge.delivered { background: var(--green-dim); color: var(--green); }
+.badge.pending { background: var(--amber-dim); color: var(--amber); }
+.badge.delayed { background: var(--red-dim); color: var(--red); }
+.badge.customs { background: var(--purple-dim); color: var(--purple); }
+
+/* TWO COL */
+.two-col { display: grid; grid-template-columns: 1fr 340px; gap: 14px; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+/* CHART */
+.chart-wrap { padding: 16px 20px 8px; }
+.bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 100px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.bar-fill { width: 100%; border-radius: 4px 4px 0 0; background: var(--blue-dim); border-top: 2px solid var(--blue); min-height: 2px; }
+.bar-fill.highlight { background: rgba(59,130,246,0.25); }
+.bar-label { font-size: 10px; color: var(--text-3); font-family: 'DM Mono', monospace; }
+.chart-legend { display: flex; gap: 16px; padding: 10px 20px 16px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-3); }
+.legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+/* ROUTE LIST */
+.route-list { display: flex; flex-direction: column; }
+.route-item { display: flex; align-items: center; gap: 12px; padding: 13px 20px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background var(--transition); }
+.route-item:last-child { border-bottom: none; }
+.route-item:hover { background: var(--bg-3); }
+.route-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.route-info { flex: 1; min-width: 0; }
+.route-name { font-size: 13px; font-weight: 500; }
+.route-meta { font-size: 11.5px; color: var(--text-3); margin-top: 1px; }
+.route-count { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-2); font-weight: 500; }
+
+/* MINI STAT */
+.mini-stat-row { display: flex; flex-direction: column; }
+.mini-stat { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+.mini-stat:last-child { border-bottom: none; }
+.mini-stat-icon { width: 32px; height: 32px; border-radius: 7px; display: grid; place-items: center; flex-shrink: 0; }
+.mini-stat-icon svg { width: 15px; height: 15px; }
+.mini-stat-body { flex: 1; }
+.mini-stat-label { font-size: 11.5px; color: var(--text-3); }
+.mini-stat-value { font-size: 14px; font-weight: 600; }
+.mini-stat-bar-wrap { width: 60px; }
+.mini-stat-bar { height: 4px; background: var(--bg-4); border-radius: 2px; overflow: hidden; }
+.mini-stat-bar-fill { height: 100%; border-radius: 2px; background: var(--blue); }
+
+/* DATA TABLE (dashboard) */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table thead th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); padding: 10px 20px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.data-table tbody tr { border-bottom: 1px solid var(--border); transition: background var(--transition); cursor: pointer; }
+.data-table tbody tr:last-child { border-bottom: none; }
+.data-table tbody tr:hover { background: var(--bg-3); }
+.data-table td { padding: 12px 20px; font-size: 13px; vertical-align: middle; }
+.data-table td:first-child { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--blue); font-weight: 500; }
+
+/* ═══════════════════════════════════════════
+   SHIPMENTS PAGE
+═══════════════════════════════════════════ */
+.shipments-page { flex: 1; display: flex; overflow: hidden; }
+
+/* SHIPMENTS TOOLBAR */
+.sh-toolbar { display: flex; align-items: center; gap: 10px; padding: 16px 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--bg-2); flex-wrap: wrap; gap: 8px; }
+.sh-toolbar-left { display: flex; align-items: center; gap: 8px; flex: 1; flex-wrap: wrap; }
+.sh-toolbar-right { display: flex; align-items: center; gap: 8px; }
+
+/* SEARCH */
+.search-wrap { display: flex; align-items: center; gap: 8px; background: var(--bg-3); border: 1px solid var(--border); border-radius: 7px; padding: 0 12px; height: 34px; transition: border-color var(--transition); min-width: 220px; }
+.search-wrap:focus-within { border-color: var(--blue); }
+.search-wrap svg { width: 14px; height: 14px; color: var(--text-3); flex-shrink: 0; }
+.search-wrap input { background: none; border: none; outline: none; font-family: inherit; font-size: 13px; color: var(--text-1); width: 100%; }
+.search-wrap input::placeholder { color: var(--text-3); }
+
+/* FILTER TABS */
+.filter-tabs { display: flex; gap: 2px; background: var(--bg-3); border: 1px solid var(--border); border-radius: 8px; padding: 3px; }
+.filter-tab { padding: 5px 12px; border-radius: 6px; font-size: 12.5px; font-weight: 500; cursor: pointer; color: var(--text-3); transition: all var(--transition); white-space: nowrap; }
+.filter-tab.active { background: var(--bg-2); color: var(--text-1); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+.filter-tab:hover:not(.active) { color: var(--text-2); }
+
+/* FILTER PILLS */
+.filter-pill { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 20px; background: var(--blue-dim); border: 1px solid var(--blue-border); color: var(--blue); font-size: 12px; font-weight: 500; cursor: pointer; }
+.filter-pill .remove { width: 14px; height: 14px; border-radius: 50%; display: grid; place-items: center; color: var(--blue); opacity: 0.7; }
+.filter-pill .remove:hover { opacity: 1; }
+
+/* SELECT */
+.sh-select { height: 34px; padding: 0 10px; border-radius: 7px; background: var(--bg-3); border: 1px solid var(--border); color: var(--text-1); font-family: inherit; font-size: 13px; cursor: pointer; outline: none; appearance: none; padding-right: 28px; background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B7385' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+
+/* SHIPMENTS BODY */
+.sh-body { flex: 1; display: flex; overflow: hidden; }
+.sh-table-wrap { flex: 1; overflow: auto; }
+.sh-table-wrap::-webkit-scrollbar { width: 6px; height: 6px; }
+.sh-table-wrap::-webkit-scrollbar-track { background: transparent; }
+.sh-table-wrap::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+
+/* SHIPMENTS TABLE */
+.sh-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+.sh-table thead { position: sticky; top: 0; z-index: 2; }
+.sh-table thead th { background: var(--bg-2); text-align: left; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); padding: 11px 16px; border-bottom: 1px solid var(--border); white-space: nowrap; cursor: pointer; user-select: none; }
+.sh-table thead th:hover { color: var(--text-2); }
+.sh-table thead th.sorted { color: var(--blue); }
+.sh-table thead th .sort-icon { display: inline-block; margin-left: 4px; opacity: 0.5; }
+.sh-table thead th.sorted .sort-icon { opacity: 1; }
+.sh-table tbody tr { border-bottom: 1px solid var(--border); cursor: pointer; transition: background var(--transition); }
+.sh-table tbody tr:hover { background: var(--bg-3); }
+.sh-table tbody tr.selected { background: var(--blue-dim); }
+.sh-table td { padding: 11px 16px; font-size: 13px; vertical-align: middle; }
+.sh-table td.mono { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--blue); font-weight: 500; }
+.sh-table td .text-muted { font-size: 11.5px; color: var(--text-3); margin-top: 1px; }
+.sh-checkbox { width: 15px; height: 15px; border-radius: 4px; border: 1.5px solid var(--border-strong); background: transparent; cursor: pointer; accent-color: var(--blue); }
+.sh-table td .route-arrow { color: var(--text-3); margin: 0 4px; }
+
+/* DETAIL PANEL */
+.detail-panel { width: 0; min-width: 0; overflow: hidden; border-left: 1px solid var(--border); background: var(--bg-2); transition: width var(--transition), min-width var(--transition); display: flex; flex-direction: column; }
+.detail-panel.open { width: 380px; min-width: 380px; }
+.dp-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; flex-shrink: 0; }
+.dp-close { width: 28px; height: 28px; border-radius: 6px; background: var(--bg-3); border: 1px solid var(--border); display: grid; place-items: center; cursor: pointer; color: var(--text-3); flex-shrink: 0; }
+.dp-close:hover { color: var(--text-1); background: var(--bg-4); }
+.dp-close svg { width: 12px; height: 12px; }
+.dp-scroll { flex: 1; overflow-y: auto; padding: 0; }
+.dp-scroll::-webkit-scrollbar { width: 4px; }
+.dp-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+/* DETAIL SECTIONS */
+.dp-section { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.dp-section:last-child { border-bottom: none; }
+.dp-section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-3); margin-bottom: 12px; }
+.dp-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 8px; }
+.dp-row:last-child { margin-bottom: 0; }
+.dp-key { font-size: 12.5px; color: var(--text-3); flex-shrink: 0; }
+.dp-val { font-size: 12.5px; color: var(--text-1); font-weight: 500; text-align: right; }
+.dp-val.mono { font-family: 'DM Mono', monospace; font-size: 12px; }
+
+/* TIMELINE */
+.timeline { display: flex; flex-direction: column; gap: 0; padding: 16px 20px; }
+.tl-item { display: flex; gap: 12px; position: relative; }
+.tl-item:not(:last-child)::before { content: ''; position: absolute; left: 7px; top: 18px; width: 1.5px; bottom: -8px; background: var(--border); }
+.tl-dot { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; margin-top: 1px; display: grid; place-items: center; }
+.tl-dot.done { background: var(--green-dim); border: 1.5px solid var(--green); }
+.tl-dot.done::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+.tl-dot.active { background: var(--blue-dim); border: 1.5px solid var(--blue); }
+.tl-dot.active::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--blue); }
+.tl-dot.pending { background: var(--bg-3); border: 1.5px solid var(--border-strong); }
+.tl-body { flex: 1; padding-bottom: 16px; }
+.tl-label { font-size: 13px; font-weight: 500; }
+.tl-meta { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
+
+/* PAGINATION */
+.sh-pagination { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-top: 1px solid var(--border); background: var(--bg-2); flex-shrink: 0; font-size: 12.5px; color: var(--text-3); }
+.pag-btns { display: flex; gap: 4px; }
+.pag-btn { width: 30px; height: 30px; border-radius: 6px; background: var(--bg-3); border: 1px solid var(--border); color: var(--text-2); display: grid; place-items: center; cursor: pointer; font-size: 12.5px; font-family: inherit; font-weight: 500; transition: all var(--transition); }
+.pag-btn:hover { background: var(--bg-4); color: var(--text-1); }
+.pag-btn.active { background: var(--blue); border-color: var(--blue); color: white; }
+.pag-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.pag-btn svg { width: 12px; height: 12px; }
+
+/* BULK ACTIONS BAR */
+.bulk-bar { display: none; align-items: center; gap: 12px; padding: 10px 24px; background: var(--blue-dim); border-bottom: 1px solid var(--blue-border); font-size: 13px; flex-shrink: 0; }
+.bulk-bar.visible { display: flex; }
+.bulk-count { font-weight: 600; color: var(--blue); }
+
+/* NEW SHIPMENT MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--bg-2); border: 1px solid var(--border-strong); border-radius: 14px; width: 560px; max-width: 95vw; max-height: 90vh; display: flex; flex-direction: column; animation: modalIn 0.2s ease; }
+@keyframes modalIn { from { opacity: 0; transform: scale(0.97) translateY(8px); } to { opacity: 1; transform: none; } }
+.modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
+.modal-close { width: 30px; height: 30px; border-radius: 7px; background: var(--bg-3); border: 1px solid var(--border); display: grid; place-items: center; cursor: pointer; color: var(--text-3); }
+.modal-close:hover { color: var(--text-1); background: var(--bg-4); }
+.modal-close svg { width: 13px; height: 13px; }
+.modal-body { padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+.modal-body::-webkit-scrollbar { width: 4px; }
+.modal-body::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+/* FORM */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group.full { grid-column: 1 / -1; }
+.form-label { font-size: 12px; font-weight: 600; color: var(--text-2); }
+.form-input, .form-select, .form-textarea { background: var(--bg-3); border: 1px solid var(--border-strong); border-radius: 7px; padding: 8px 12px; font-family: inherit; font-size: 13px; color: var(--text-1); outline: none; transition: border-color var(--transition); width: 100%; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--blue); }
+.form-input::placeholder, .form-textarea::placeholder { color: var(--text-3); }
+.form-select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B7385' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+.form-textarea { resize: vertical; min-height: 72px; line-height: 1.5; }
+.form-divider { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-3); padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+
+/* EMPTY STATE */
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 24px; gap: 12px; color: var(--text-3); }
+.empty-state svg { width: 40px; height: 40px; opacity: 0.4; }
+.empty-state p { font-size: 14px; }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* TOPBAR SEARCH */
+.tb-search-wrap { display: flex; align-items: center; gap: 8px; background: var(--bg-3); border: 1px solid var(--border); border-radius: 7px; padding: 0 12px; height: 34px; transition: border-color var(--transition); }
+.tb-search-wrap:focus-within { border-color: var(--blue); }
+.tb-search-wrap svg { width: 14px; height: 14px; color: var(--text-3); flex-shrink: 0; }
+.tb-search-wrap input { background: none; border: none; outline: none; font-family: inherit; font-size: 13px; color: var(--text-1); width: 160px; }
+.tb-search-wrap input::placeholder { color: var(--text-3); }
+
+/* TOOLTIP */
+[data-tip] { position: relative; }
+[data-tip]:hover::after { content: attr(data-tip); position: absolute; left: 50%; top: calc(100% + 6px); transform: translateX(-50%); background: var(--bg-4); border: 1px solid var(--border-strong); border-radius: 5px; color: var(--text-1); font-size: 11.5px; padding: 4px 8px; white-space: nowrap; pointer-events: none; z-index: 100; }
+
+/* STATUS BADGE IN DP */
+.dp-status-wrap { display: flex; justify-content: flex-end; }
+
+/* PROGRESS STEPS */
+.progress-steps { display: flex; gap: 4px; margin: 12px 0; }
+.ps-step { flex: 1; height: 3px; border-radius: 2px; background: var(--bg-4); }
+.ps-step.done { background: var(--green); }
+.ps-step.active { background: var(--blue); }
+
+/* COLUMN VISIBILITY  */
+.col-toggle-menu { position: absolute; right: 0; top: calc(100% + 6px); background: var(--bg-2); border: 1px solid var(--border-strong); border-radius: 10px; padding: 8px; min-width: 180px; z-index: 50; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+.col-toggle-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--text-2); transition: background var(--transition); }
+.col-toggle-item:hover { background: var(--bg-3); color: var(--text-1); }
+.col-check { width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid var(--border-strong); display: grid; place-items: center; flex-shrink: 0; }
+.col-check.checked { background: var(--blue); border-color: var(--blue); }
+.col-check.checked svg { display: block; }
+.col-check svg { display: none; width: 9px; height: 9px; color: white; }
+.col-toggle-wrap { position: relative; }
+
+/* RESPONSIVE */
+@media (max-width:1100px) { .stat-grid { grid-template-columns: repeat(2,1fr); } .two-col { grid-template-columns: 1fr; } .three-col { grid-template-columns: 1fr 1fr; } }
+@media (max-width:700px) { .stat-grid { grid-template-columns: 1fr 1fr; } .three-col { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo-mark">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="5" width="14" height="9" rx="1.5"/><path d="M4 5V4a2 2 0 014 0v1"/><path d="M8 5V3a2 2 0 014 0v2"/><circle cx="5" cy="9.5" r="1" fill="currentColor" stroke="none"/><circle cx="11" cy="9.5" r="1" fill="currentColor" stroke="none"/></svg>
+    </div>
+    <span class="logo-text">CargoOS</span>
+  </div>
+  <button class="toggle-btn" onclick="toggleSidebar()" data-tip="Collapse">
+    <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7.5 2L3.5 6l4 4"/></svg>
+  </button>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Operations</div>
+    <div class="nav-item" onclick="showPage('dashboard',this)">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="1.5" y="1.5" width="6" height="6" rx="1.5"/><rect x="10.5" y="1.5" width="6" height="6" rx="1.5"/><rect x="1.5" y="10.5" width="6" height="6" rx="1.5"/><rect x="10.5" y="10.5" width="6" height="6" rx="1.5"/></svg>
+      <span class="nav-label">Dashboard</span>
+    </div>
+    <div class="nav-item active" onclick="showPage('shipments',this)">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 4h14v10a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/><path d="M6 4V2.5A.5.5 0 016.5 2h5a.5.5 0 01.5.5V4"/><path d="M2 8h14"/></svg>
+      <span class="nav-label">Shipments</span>
+      <span class="nav-badge" id="shipBadge">12</span>
+    </div>
+    <div class="nav-item" onclick="showPage('placeholder',this)">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="1" y="5" width="12" height="9" rx="1.5"/><path d="M13 8l3 2v4h-3V8z"/><circle cx="4.5" cy="14" r="1.5"/><circle cx="10.5" cy="14" r="1.5"/><circle cx="15" cy="14" r="1.5"/></svg>
+      <span class="nav-label">Fleet</span>
+    </div>
+    <div class="nav-item" onclick="showPage('placeholder',this)">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="4" cy="4" r="2"/><circle cx="14" cy="14" r="2"/><path d="M4 6c0 5 10 3 10 8"/></svg>
+      <span class="nav-label">Routes</span>
+    </div>
+    <div class="nav-item" onclick="showPage('placeholder',this)">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 8L9 2l7 6v8H2V8z"/><rect x="7" y="11" width="4" height="5"/></svg>
+      <span class="nav-label">Warehouses</span>
+    </div>
+    <div class="nav-section-label" style="margin-top:8px">Management</div>
+    <div class="nav-item" onclick="showPage('placeholder',this)">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="6" r="3"/><path d="M2 17c0-3.866 3.134-7 7-7s7 3.134 7 7"/></svg>
+      <span class="nav-label">Customers</span>
+    </div>
+    <div class="nav-item" onclick="showPage('placeholder',this)">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="2" y="4" width="14" height="11" rx="1.5"/><path d="M2 8h14"/><path d="M6 12h2M10 12h2"/></svg>
+      <span class="nav-label">Billing</span>
+    </div>
+    <div class="nav-item" onclick="showPage('placeholder',this)">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 14V9M8 14V5M12 14v-3M16 14v-7"/></svg>
+      <span class="nav-label">Reports</span>
+    </div>
+    <div class="nav-section-label" style="margin-top:8px">System</div>
+    <div class="nav-item" onclick="showPage('placeholder',this)">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="9" r="2.5"/><path d="M9 1v2M9 15v2M1 9h2M15 9h2M3.1 3.1l1.4 1.4M13.5 13.5l1.4 1.4M3.1 14.9l1.4-1.4M13.5 4.5l1.4-1.4"/></svg>
+      <span class="nav-label">Settings</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="avatar">AK</div>
+    <div class="user-info">
+      <div class="user-name">Amir Khalil</div>
+      <div class="user-role">Ops Manager</div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <span class="topbar-title" id="pageTitle">Shipments</span>
+    <div class="topbar-actions">
+      <div class="tb-search-wrap">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg>
+        <input type="text" placeholder="Search…" id="tbSearch">
+      </div>
+      <button class="icon-btn" onclick="toggleTheme()" data-tip="Toggle theme">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" id="themeIcon">
+          <circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4"/>
+        </svg>
+      </button>
+      <button class="icon-btn" data-tip="Notifications" style="position:relative">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 1a5 5 0 015 5v3l1.5 2H1.5L3 9V6a5 5 0 015-5z"/><path d="M6.5 13a1.5 1.5 0 003 0"/></svg>
+        <span style="position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid var(--bg-2)"></span>
+      </button>
+      <button class="btn primary" onclick="openModal()">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 1v12M1 7h12"/></svg>
+        New Shipment
+      </button>
+    </div>
+  </header>
+
+  <!-- ════ DASHBOARD PAGE ════ -->
+  <div class="page" id="page-dashboard">
+    <div class="content">
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-icon" style="background:var(--blue-dim);color:var(--blue)"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="1" y="5" width="12" height="9" rx="1.5"/><path d="M13 8l3 2v4h-3V8z"/><circle cx="4.5" cy="14" r="1.5"/><circle cx="10.5" cy="14" r="1.5"/><circle cx="15" cy="14" r="1.5"/></svg></div>
+            <span class="stat-change up">↑ 8.4%</span>
+          </div>
+          <div class="stat-value">1,284</div>
+          <div class="stat-label">Active Shipments</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:72%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-icon" style="background:var(--green-dim);color:var(--green)"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M2 9l5 5 9-9"/></svg></div>
+            <span class="stat-change up">↑ 2.1%</span>
+          </div>
+          <div class="stat-value" style="color:var(--green)">94.7%</div>
+          <div class="stat-label">On-time Delivery</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:94.7%;background:var(--green)"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-icon" style="background:var(--amber-dim);color:var(--amber)"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="9" r="7"/><path d="M9 5v4l2.5 2.5"/></svg></div>
+            <span class="stat-change down">↓ 1.2%</span>
+          </div>
+          <div class="stat-value">38</div>
+          <div class="stat-label">Pending Clearance</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:38%;background:var(--amber)"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-icon" style="background:var(--purple-dim);color:var(--purple)"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="2" y="4" width="14" height="11" rx="1.5"/><path d="M2 8h14M6 2v4M12 2v4"/></svg></div>
+            <span class="stat-change up">↑ 12.8%</span>
+          </div>
+          <div class="stat-value">$2.4M</div>
+          <div class="stat-label">Revenue This Month</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:60%;background:var(--purple)"></div></div>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Cargo Volume</div><div class="card-subtitle">Shipments per week</div></div>
+            <div style="display:flex;gap:6px"><button class="btn" style="padding:5px 10px;font-size:12px">Weekly</button><button class="btn" style="padding:5px 10px;font-size:12px;background:var(--blue-dim);border-color:var(--blue-border);color:var(--blue)">Monthly</button></div>
+          </div>
+          <div class="chart-wrap"><div class="bar-chart" id="barChart"></div></div>
+          <div class="chart-legend"><div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> Dispatched</div><div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Delivered</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div><div class="card-title">Active Routes</div><div class="card-subtitle">Live corridors</div></div><span style="font-size:11.5px;color:var(--blue);cursor:pointer;font-weight:500">View all →</span></div>
+          <div class="route-list">
+            <div class="route-item"><div class="route-dot" style="background:var(--green)"></div><div class="route-info"><div class="route-name">Shanghai → Rotterdam</div><div class="route-meta">Sea freight · 28 days avg</div></div><span class="route-count">142</span></div>
+            <div class="route-item"><div class="route-dot" style="background:var(--blue)"></div><div class="route-info"><div class="route-name">Dubai → New York</div><div class="route-meta">Air + sea · 7 days avg</div></div><span class="route-count">89</span></div>
+            <div class="route-item"><div class="route-dot" style="background:var(--amber)"></div><div class="route-info"><div class="route-name">Singapore → Los Angeles</div><div class="route-meta">Sea freight · 22 days avg</div></div><span class="route-count">61</span></div>
+            <div class="route-item"><div class="route-dot" style="background:var(--purple)"></div><div class="route-info"><div class="route-name">Frankfurt → Chicago</div><div class="route-meta">Air freight · 2 days avg</div></div><span class="route-count">47</span></div>
+            <div class="route-item"><div class="route-dot" style="background:var(--green)"></div><div class="route-info"><div class="route-name">Dar es Salaam → Mumbai</div><div class="route-meta">Sea freight · 18 days avg</div></div><span class="route-count">33</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="three-col">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Fleet Status</div></div>
+          <div class="mini-stat-row">
+            <div class="mini-stat"><div class="mini-stat-icon" style="background:var(--green-dim);color:var(--green)"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="1" y="5" width="12" height="9" rx="1.5"/><path d="M13 8l3 2v4h-3V8z"/><circle cx="4.5" cy="14" r="1.5"/><circle cx="10.5" cy="14" r="1.5"/><circle cx="15" cy="14" r="1.5"/></svg></div><div class="mini-stat-body"><div class="mini-stat-label">Trucks En Route</div><div class="mini-stat-value">48 / 64</div></div><div class="mini-stat-bar-wrap"><div class="mini-stat-bar"><div class="mini-stat-bar-fill" style="width:75%;background:var(--green)"></div></div></div></div>
+            <div class="mini-stat"><div class="mini-stat-icon" style="background:var(--blue-dim);color:var(--blue)"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 2L2 6v10h14V6L9 2z"/><path d="M6 16V10h6v6"/></svg></div><div class="mini-stat-body"><div class="mini-stat-label">Container Ships</div><div class="mini-stat-value">7 / 12</div></div><div class="mini-stat-bar-wrap"><div class="mini-stat-bar"><div class="mini-stat-bar-fill" style="width:58%"></div></div></div></div>
+            <div class="mini-stat"><div class="mini-stat-icon" style="background:var(--amber-dim);color:var(--amber)"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 2l1.5 4.5H15l-3.75 2.75 1.5 4.5L9 11 5.25 13.75l1.5-4.5L3 6.5h4.5L9 2z"/></svg></div><div class="mini-stat-body"><div class="mini-stat-label">Aircraft Cargo</div><div class="mini-stat-value">3 / 5</div></div><div class="mini-stat-bar-wrap"><div class="mini-stat-bar"><div class="mini-stat-bar-fill" style="width:60%;background:var(--amber)"></div></div></div></div>
+            <div class="mini-stat"><div class="mini-stat-icon" style="background:var(--red-dim);color:var(--red)"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="9" r="7"/><path d="M9 5v4M9 12.5v.5"/></svg></div><div class="mini-stat-body"><div class="mini-stat-label">In Maintenance</div><div class="mini-stat-value">6 vehicles</div></div><div class="mini-stat-bar-wrap"><div class="mini-stat-bar"><div class="mini-stat-bar-fill" style="width:12%;background:var(--red)"></div></div></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Alerts</div><span class="badge delayed" style="font-size:11px">3 critical</span></div>
+          <div class="mini-stat-row">
+            <div class="mini-stat" style="align-items:flex-start"><div class="mini-stat-icon" style="background:var(--red-dim);color:var(--red);margin-top:2px"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 2L1.5 15h15L9 2z"/><path d="M9 7v4M9 13.5v.5"/></svg></div><div class="mini-stat-body"><div class="mini-stat-value" style="font-size:13px">Port Congestion</div><div class="mini-stat-label">Rotterdam — 24h delay</div></div></div>
+            <div class="mini-stat" style="align-items:flex-start"><div class="mini-stat-icon" style="background:var(--amber-dim);color:var(--amber);margin-top:2px"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="9" r="7"/><path d="M9 5v4M9 12.5v.5"/></svg></div><div class="mini-stat-body"><div class="mini-stat-value" style="font-size:13px">Customs Hold</div><div class="mini-stat-label">SHG-0091 awaiting docs</div></div></div>
+            <div class="mini-stat" style="align-items:flex-start"><div class="mini-stat-icon" style="background:var(--red-dim);color:var(--red);margin-top:2px"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 2L1.5 15h15L9 2z"/><path d="M9 7v4M9 13.5v.5"/></svg></div><div class="mini-stat-body"><div class="mini-stat-value" style="font-size:13px">Temp Exceedance</div><div class="mini-stat-label">Cold chain SG-441 >4°C</div></div></div>
+            <div class="mini-stat" style="align-items:flex-start"><div class="mini-stat-icon" style="background:var(--blue-dim);color:var(--blue);margin-top:2px"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="9" r="7"/><path d="M9 6v3l2 2"/></svg></div><div class="mini-stat-body"><div class="mini-stat-value" style="font-size:13px">Route Diversion</div><div class="mini-stat-label">TK-210 rerouted — weather</div></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Warehouse Capacity</div></div>
+          <div class="mini-stat-row">
+            <div class="mini-stat"><div class="mini-stat-body"><div class="mini-stat-label">Dubai Hub</div><div class="mini-stat-value">87%</div><div class="mini-stat-bar"><div class="mini-stat-bar-fill" style="width:87%;background:var(--red);height:4px;border-radius:2px"></div></div></div></div>
+            <div class="mini-stat"><div class="mini-stat-body"><div class="mini-stat-label">Singapore DHL</div><div class="mini-stat-value">62%</div><div class="mini-stat-bar"><div class="mini-stat-bar-fill" style="width:62%;height:4px;border-radius:2px"></div></div></div></div>
+            <div class="mini-stat"><div class="mini-stat-body"><div class="mini-stat-label">Rotterdam Port</div><div class="mini-stat-value">45%</div><div class="mini-stat-bar"><div class="mini-stat-bar-fill" style="width:45%;background:var(--green);height:4px;border-radius:2px"></div></div></div></div>
+            <div class="mini-stat"><div class="mini-stat-body"><div class="mini-stat-label">Chicago O'Hare</div><div class="mini-stat-value">71%</div><div class="mini-stat-bar"><div class="mini-stat-bar-fill" style="width:71%;background:var(--amber);height:4px;border-radius:2px"></div></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ SHIPMENTS PAGE ════ -->
+  <div class="page active" id="page-shipments">
+    <!-- KPI BAR -->
+    <div style="display:flex;gap:12px;padding:16px 24px 0;flex-shrink:0">
+      <div class="stat-card" style="flex:1;padding:14px 18px;animation:none">
+        <div class="stat-top" style="margin-bottom:6px">
+          <div class="stat-icon" style="background:var(--blue-dim);color:var(--blue);width:28px;height:28px"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="2" y="4" width="14" height="11" rx="1.5"/><path d="M2 8h14"/></svg></div>
+          <span class="stat-change up" style="font-size:11px">↑ 8%</span>
+        </div>
+        <div class="stat-value" style="font-size:22px" id="kpiTotal">48</div>
+        <div class="stat-label">Total Shipments</div>
+      </div>
+      <div class="stat-card" style="flex:1;padding:14px 18px;animation:none">
+        <div class="stat-top" style="margin-bottom:6px"><div class="stat-icon" style="background:var(--blue-dim);color:var(--blue);width:28px;height:28px"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="9" r="7"/><path d="M6 9l2 2 4-4"/></svg></div></div>
+        <div class="stat-value" style="font-size:22px;color:var(--blue)" id="kpiTransit">0</div>
+        <div class="stat-label">In Transit</div>
+      </div>
+      <div class="stat-card" style="flex:1;padding:14px 18px;animation:none">
+        <div class="stat-top" style="margin-bottom:6px"><div class="stat-icon" style="background:var(--green-dim);color:var(--green);width:28px;height:28px"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M2 9l5 5 9-9"/></svg></div></div>
+        <div class="stat-value" style="font-size:22px;color:var(--green)" id="kpiDelivered">0</div>
+        <div class="stat-label">Delivered</div>
+      </div>
+      <div class="stat-card" style="flex:1;padding:14px 18px;animation:none">
+        <div class="stat-top" style="margin-bottom:6px"><div class="stat-icon" style="background:var(--amber-dim);color:var(--amber);width:28px;height:28px"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="9" r="7"/><path d="M9 5v4l2.5 2.5"/></svg></div></div>
+        <div class="stat-value" style="font-size:22px;color:var(--amber)" id="kpiPending">0</div>
+        <div class="stat-label">Pending / Customs</div>
+      </div>
+      <div class="stat-card" style="flex:1;padding:14px 18px;animation:none">
+        <div class="stat-top" style="margin-bottom:6px"><div class="stat-icon" style="background:var(--red-dim);color:var(--red);width:28px;height:28px"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 2L1.5 15h15L9 2z"/><path d="M9 7v4M9 13.5v.5"/></svg></div></div>
+        <div class="stat-value" style="font-size:22px;color:var(--red)" id="kpiDelayed">0</div>
+        <div class="stat-label">Delayed</div>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="sh-toolbar">
+      <div class="sh-toolbar-left">
+        <div class="search-wrap" style="flex:1;max-width:300px">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg>
+          <input type="text" placeholder="Search ID, customer, origin, destination…" id="shSearch" oninput="applyFilters()">
+        </div>
+        <div class="filter-tabs">
+          <div class="filter-tab active" onclick="setStatusFilter('all',this)">All</div>
+          <div class="filter-tab" onclick="setStatusFilter('transit',this)">In Transit</div>
+          <div class="filter-tab" onclick="setStatusFilter('delivered',this)">Delivered</div>
+          <div class="filter-tab" onclick="setStatusFilter('pending',this)">Pending</div>
+          <div class="filter-tab" onclick="setStatusFilter('delayed',this)">Delayed</div>
+          <div class="filter-tab" onclick="setStatusFilter('customs',this)">Customs</div>
+        </div>
+        <div id="activePills" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
+      <div class="sh-toolbar-right">
+        <select class="sh-select" onchange="setModeFilter(this.value)" id="modeFilter">
+          <option value="all">All Modes</option>
+          <option value="Sea">Sea</option>
+          <option value="Air">Air</option>
+          <option value="Road">Road</option>
+          <option value="Rail">Rail</option>
+        </select>
+        <select class="sh-select" onchange="setSortField(this.value)" id="sortSelect">
+          <option value="id">Sort: ID</option>
+          <option value="eta">Sort: ETA</option>
+          <option value="weight">Sort: Weight</option>
+          <option value="customer">Sort: Customer</option>
+        </select>
+        <button class="btn" onclick="exportCSV()">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M7 1v8M4 6l3 3 3-3"/><path d="M1 11v1a1 1 0 001 1h10a1 1 0 001-1v-1"/></svg>
+          Export
+        </button>
+        <div class="col-toggle-wrap">
+          <button class="btn" onclick="toggleColMenu()">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1 3h12M1 7h12M1 11h12"/></svg>
+            Columns
+          </button>
+          <div class="col-toggle-menu" id="colMenu" style="display:none" onclick="event.stopPropagation()">
+            <div id="colToggles"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BULK BAR -->
+    <div class="bulk-bar" id="bulkBar">
+      <span class="bulk-count" id="bulkCount">0 selected</span>
+      <button class="btn" style="padding:5px 12px;font-size:12px" onclick="bulkUpdateStatus('transit')">Mark In Transit</button>
+      <button class="btn" style="padding:5px 12px;font-size:12px" onclick="bulkUpdateStatus('delivered')">Mark Delivered</button>
+      <button class="btn" style="padding:5px 12px;font-size:12px;color:var(--red);border-color:var(--red-dim)" onclick="bulkDelete()">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1 3h12M4 3V2a1 1 0 011-1h4a1 1 0 011 1v1M5 6v5M9 6v5M2 3l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9"/></svg>
+        Delete
+      </button>
+      <button class="btn" style="padding:5px 12px;font-size:12px;margin-left:auto" onclick="clearSelection()">Clear</button>
+    </div>
+
+    <!-- TABLE + DETAIL PANEL -->
+    <div class="sh-body">
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+        <div class="sh-table-wrap">
+          <table class="sh-table">
+            <thead id="shThead"></thead>
+            <tbody id="shTbody"></tbody>
+          </table>
+        </div>
+        <div class="sh-pagination">
+          <span id="pagInfo">Showing 1–20 of 48</span>
+          <div class="pag-btns" id="pagBtns"></div>
+        </div>
+      </div>
+      <div class="detail-panel" id="detailPanel">
+        <div class="dp-header">
+          <div>
+            <div style="font-size:15px;font-weight:600;letter-spacing:-0.02em" id="dpTitle">SHG-00214</div>
+            <div style="margin-top:4px" id="dpBadge"></div>
+          </div>
+          <button class="dp-close" onclick="closeDetail()">
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 1l10 10M11 1L1 11"/></svg>
+          </button>
+        </div>
+        <div class="dp-scroll" id="dpScroll"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ PLACEHOLDER PAGE ════ -->
+  <div class="page" id="page-placeholder">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--text-3)">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.4"><rect x="4" y="4" width="40" height="40" rx="8"/><path d="M16 24h16M24 16v16"/></svg>
+      <p style="font-size:16px;font-weight:500;color:var(--text-2)">Coming soon</p>
+      <p style="font-size:13px">This section is under construction.</p>
+    </div>
+  </div>
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- NEW SHIPMENT MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">New Shipment</span>
+      <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 1l11 11M12 1L1 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-divider">Route</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Origin City</label>
+          <input class="form-input" placeholder="e.g. Shanghai" id="fOrigin">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Destination City</label>
+          <input class="form-input" placeholder="e.g. Rotterdam" id="fDest">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Transport Mode</label>
+          <select class="form-select" id="fMode">
+            <option>Sea</option><option>Air</option><option>Road</option><option>Rail</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ETA</label>
+          <input class="form-input" type="date" id="fETA">
+        </div>
+      </div>
+      <div class="form-divider">Cargo</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Customer</label>
+          <input class="form-input" placeholder="Company name" id="fCustomer">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Weight (kg)</label>
+          <input class="form-input" type="number" placeholder="e.g. 1500" id="fWeight">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cargo Type</label>
+          <select class="form-select" id="fType">
+            <option>General</option><option>Electronics</option><option>Perishable</option><option>Hazardous</option><option>Automotive</option><option>Textiles</option><option>Machinery</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Container Count</label>
+          <input class="form-input" type="number" placeholder="e.g. 2" id="fContainers">
+        </div>
+      </div>
+      <div class="form-divider">Contacts</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Contact Name</label>
+          <input class="form-input" placeholder="Full name" id="fContact">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contact Email</label>
+          <input class="form-input" type="email" placeholder="email@company.com" id="fEmail">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-textarea" placeholder="Optional handling instructions, references…" id="fNotes"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" onclick="createShipment()">Create Shipment</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   DATA
+══════════════════════════════════════ */
+const STATUSES = ['transit','delivered','pending','delayed','customs'];
+const MODES = ['Sea','Air','Road','Rail'];
+const CUSTOMERS = ['Siemens AG','Amazon Supply','Apple Inc.','Philips Global','Unilever Ltd','Tata Consultancy','TanzaTrade Co.','Boeing Parts','Samsung Elec','BASF Group','DHL Express','Reckitt PLC','Nestlé SA','Volvo Group','Maersk Line','Cargill Inc','Rio Tinto','Shell Trading','Alibaba Group','Toyota Parts'];
+const CARGO_TYPES = ['Electronics','General','Perishable','Hazardous','Automotive','Textiles','Machinery'];
+const ROUTES = [
+  ['Shanghai','Rotterdam'],['Dubai','New York'],['Singapore','Los Angeles'],
+  ['Frankfurt','Chicago'],['Dar es Salaam','Mumbai'],['Nairobi','London'],
+  ['Mumbai','Frankfurt'],['Chicago','Berlin'],['Tokyo','Sydney'],
+  ['Karachi','Amsterdam'],['Jakarta','Hamburg'],['Lagos','Antwerp'],
+  ['Casablanca','Barcelona'],['Colombo','Felixstowe'],['Manila','Long Beach'],
+];
+
+function randItem(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+function randInt(a,b) { return Math.floor(Math.random()*(b-a+1))+a; }
+function fmtDate(d) { return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+
+function genShipments(n=48) {
+  const list = [];
+  const prefixes = ['SHG','DXB','SGP','RTM','NBO','MUM','DAR','ORD','TYO','KRC'];
+  for (let i=0;i<n;i++) {
+    const [origin,dest] = randItem(ROUTES);
+    const status = i<2 ? (i===0?'delayed':'customs') : randItem(STATUSES);
+    const eta = new Date(Date.now() + randInt(-5,30)*86400000);
+    const created = new Date(Date.now() - randInt(1,20)*86400000);
+    list.push({
+      id: `${randItem(prefixes)}-${String(10000+i).slice(1)}`,
+      origin, dest,
+      customer: randItem(CUSTOMERS),
+      weight: randInt(200,15000),
+      mode: randItem(MODES),
+      type: randItem(CARGO_TYPES),
+      status,
+      eta,
+      created,
+      containers: randInt(1,8),
+      contact: 'J. Mercer',
+      email: 'ops@company.com',
+      notes: '',
+      vessel: `${['MSC','CMA CGM','Evergreen','Yang Ming'][randInt(0,3)]} ${['Amber','Pacific','Titan','Horizon'][randInt(0,3)]}`,
+      port: randItem(['Rotterdam','Singapore','Shanghai','Dubai Port','Los Angeles','Antwerp']),
+      insurance: `$${(randInt(10,200)*1000).toLocaleString()}`,
+      incoterm: randItem(['FOB','CIF','DDP','EXW','DAP']),
+    });
+  }
+  return list;
+}
+
+let allShipments = genShipments(48);
+let filtered = [...allShipments];
+let currentPage = 1;
+const perPage = 15;
+let selectedIds = new Set();
+let activeStatus = 'all';
+let activeMode = 'all';
+let sortField = 'id';
+let sortDir = 1;
+let selectedShipment = null;
+
+const COLUMNS = [
+  { key:'id', label:'Tracking ID', visible:true },
+  { key:'route', label:'Route', visible:true },
+  { key:'customer', label:'Customer', visible:true },
+  { key:'weight', label:'Weight', visible:true },
+  { key:'mode', label:'Mode', visible:true },
+  { key:'type', label:'Type', visible:false },
+  { key:'containers', label:'Containers', visible:false },
+  { key:'eta', label:'ETA', visible:true },
+  { key:'created', label:'Created', visible:false },
+  { key:'status', label:'Status', visible:true },
+];
+
+/* ══════════════════════════════════════
+   FILTERS & SORT
+══════════════════════════════════════ */
+function setStatusFilter(s, el) {
+  activeStatus = s;
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  currentPage=1; selectedIds.clear(); applyFilters();
+}
+function setModeFilter(v) { activeMode=v; currentPage=1; applyFilters(); }
+function setSortField(f) { if(sortField===f) sortDir*=-1; else { sortField=f; sortDir=1; } applyFilters(); }
+document.getElementById('sortSelect').onchange = function(){ setSortField(this.value); };
+
+function applyFilters() {
+  const q = document.getElementById('shSearch').value.trim().toLowerCase();
+  filtered = allShipments.filter(s => {
+    if (activeStatus!=='all' && s.status!==activeStatus) return false;
+    if (activeMode!=='all' && s.mode!==activeMode) return false;
+    if (q && !`${s.id} ${s.customer} ${s.origin} ${s.dest} ${s.type}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  filtered.sort((a,b) => {
+    let va=a[sortField], vb=b[sortField];
+    if(sortField==='eta'||sortField==='created'){va=va.getTime();vb=vb.getTime();}
+    if(sortField==='weight'){va=+va;vb=+vb;}
+    if(va<vb) return -sortDir; if(va>vb) return sortDir; return 0;
+  });
+  updateKPIs();
+  renderTable();
+  updatePagination();
+}
+
+function updateKPIs() {
+  const counts = {transit:0,delivered:0,pending:0,customs:0,delayed:0};
+  allShipments.forEach(s=>{ if(counts[s.status]!==undefined) counts[s.status]++; });
+  document.getElementById('kpiTotal').textContent = allShipments.length;
+  document.getElementById('kpiTransit').textContent = counts.transit;
+  document.getElementById('kpiDelivered').textContent = counts.delivered;
+  document.getElementById('kpiPending').textContent = counts.pending + counts.customs;
+  document.getElementById('kpiDelayed').textContent = counts.delayed;
+  document.getElementById('shipBadge').textContent = counts.transit + counts.delayed;
+}
+
+/* ══════════════════════════════════════
+   RENDER TABLE
+══════════════════════════════════════ */
+const STATUS_LABEL = {transit:'In Transit',delivered:'Delivered',pending:'Pending',delayed:'Delayed',customs:'Customs'};
+const MODE_ICONS = {
+  Sea:`<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="width:12px;height:12px;vertical-align:middle;margin-right:4px"><path d="M1 9l2-5h8l2 5H1z"/><path d="M4 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/></svg>`,
+  Air:`<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="width:12px;height:12px;vertical-align:middle;margin-right:4px"><path d="M1 8l3-4 2 2 5-3 1 2-5 2 1 3-2 1-1-2-4 1z"/></svg>`,
+  Road:`<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="width:12px;height:12px;vertical-align:middle;margin-right:4px"><rect x="1" y="4" width="9" height="6" rx="1"/><path d="M10 7l3 1.5V10h-3V7z"/><circle cx="3.5" cy="10" r="1.5"/><circle cx="8.5" cy="10" r="1.5"/></svg>`,
+  Rail:`<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="width:12px;height:12px;vertical-align:middle;margin-right:4px"><rect x="2" y="2" width="10" height="8" rx="1.5"/><path d="M2 6h10"/><circle cx="4" cy="12" r="1"/><circle cx="10" cy="12" r="1"/><path d="M4 10v2M10 10v2M5 12h4"/></svg>`,
+};
+
+function renderTable() {
+  const visCols = COLUMNS.filter(c=>c.visible);
+  const thead = document.getElementById('shThead');
+  const tbody = document.getElementById('shTbody');
+
+  // Header
+  const allChecked = filtered.length>0 && filtered.every(s=>selectedIds.has(s.id));
+  thead.innerHTML = `<tr>
+    <th style="width:36px;padding-left:16px"><input type="checkbox" class="sh-checkbox" ${allChecked?'checked':''} onchange="toggleAll(this.checked)" onclick="event.stopPropagation()"></th>
+    ${visCols.map(c=>`<th class="${sortField===c.key?'sorted':''}" onclick="sortBy('${c.key}')">${c.label}<span class="sort-icon">${sortField===c.key?(sortDir>0?'↑':'↓'):'↕'}</span></th>`).join('')}
+    <th style="width:40px"></th>
+  </tr>`;
+
+  // Body
+  const start = (currentPage-1)*perPage;
+  const slice = filtered.slice(start, start+perPage);
+
+  if (slice.length===0) {
+    tbody.innerHTML = `<tr><td colspan="${visCols.length+2}" style="padding:0">
+      <div class="empty-state">
+        <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><rect x="4" y="8" width="32" height="28" rx="3"/><path d="M13 4v8M27 4v8M4 18h32"/><path d="M13 25h14M13 31h8"/></svg>
+        <p>No shipments match your filters</p>
+      </div>
+    </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = slice.map(s => {
+    const sel = selectedIds.has(s.id);
+    const isActive = selectedShipment && selectedShipment.id===s.id;
+    const cells = visCols.map(c => {
+      if (c.key==='id') return `<td class="mono" style="cursor:pointer">${s.id}</td>`;
+      if (c.key==='route') return `<td><span style="font-weight:500">${s.origin}</span><span class="route-arrow">→</span><span style="font-weight:500">${s.dest}</span><div class="text-muted">${s.type}</div></td>`;
+      if (c.key==='customer') return `<td>${s.customer}<div class="text-muted">${s.email}</div></td>`;
+      if (c.key==='weight') return `<td>${s.weight.toLocaleString()} kg</td>`;
+      if (c.key==='mode') return `<td>${MODE_ICONS[s.mode]||''}${s.mode}</td>`;
+      if (c.key==='type') return `<td>${s.type}</td>`;
+      if (c.key==='containers') return `<td>${s.containers}</td>`;
+      if (c.key==='eta') return `<td>${fmtDate(s.eta)}</td>`;
+      if (c.key==='created') return `<td>${fmtDate(s.created)}</td>`;
+      if (c.key==='status') return `<td><span class="badge ${s.status}">${STATUS_LABEL[s.status]}</span></td>`;
+      return `<td></td>`;
+    }).join('');
+    return `<tr class="${sel?'selected':''} ${isActive?'selected':''}" onclick="openDetail('${s.id}')">
+      <td style="padding-left:16px"><input type="checkbox" class="sh-checkbox" ${sel?'checked':''} onchange="toggleRow('${s.id}',this.checked)" onclick="event.stopPropagation()"></td>
+      ${cells}
+      <td><button style="background:none;border:none;cursor:pointer;color:var(--text-3);padding:4px;border-radius:5px;display:grid;place-items:center" onclick="event.stopPropagation();openDetail('${s.id}')">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" style="width:13px;height:13px"><path d="M5 2h7v7"/><path d="M12 2L2 12"/></svg>
+      </button></td>
+    </tr>`;
+  }).join('');
+}
+
+function sortBy(field) {
+  if(sortField===field) sortDir*=-1; else {sortField=field;sortDir=1;}
+  renderTable();
+}
+
+/* ══════════════════════════════════════
+   SELECTION
+══════════════════════════════════════ */
+function toggleRow(id, checked) {
+  if(checked) selectedIds.add(id); else selectedIds.delete(id);
+  updateBulkBar(); renderTable();
+}
+function toggleAll(checked) {
+  const start=(currentPage-1)*perPage;
+  filtered.slice(start,start+perPage).forEach(s=>{ if(checked) selectedIds.add(s.id); else selectedIds.delete(s.id); });
+  updateBulkBar(); renderTable();
+}
+function clearSelection() { selectedIds.clear(); updateBulkBar(); renderTable(); }
+function updateBulkBar() {
+  const n=selectedIds.size;
+  document.getElementById('bulkBar').classList.toggle('visible',n>0);
+  document.getElementById('bulkCount').textContent=`${n} selected`;
+}
+function bulkUpdateStatus(status) {
+  allShipments.forEach(s=>{ if(selectedIds.has(s.id)) s.status=status; });
+  selectedIds.clear(); updateBulkBar(); applyFilters();
+}
+function bulkDelete() {
+  if(!confirm(`Delete ${selectedIds.size} shipment(s)?`)) return;
+  allShipments = allShipments.filter(s=>!selectedIds.has(s.id));
+  selectedIds.clear(); updateBulkBar(); applyFilters();
+}
+
+/* ══════════════════════════════════════
+   PAGINATION
+══════════════════════════════════════ */
+function updatePagination() {
+  const total = filtered.length;
+  const pages = Math.max(1,Math.ceil(total/perPage));
+  if(currentPage>pages) currentPage=pages;
+  const start=(currentPage-1)*perPage+1;
+  const end=Math.min(currentPage*perPage,total);
+  document.getElementById('pagInfo').textContent = total===0 ? 'No results' : `Showing ${start}–${end} of ${total}`;
+
+  const btns = document.getElementById('pagBtns');
+  let html = `<button class="pag-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>
+    <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 2L3 6l4 4"/></svg>
+  </button>`;
+  for(let p=1;p<=pages;p++) {
+    if(pages>7 && p>2 && p<pages-1 && Math.abs(p-currentPage)>1) {
+      if(p===3||p===pages-2) html+=`<button class="pag-btn" disabled style="opacity:.4">…</button>`;
+      continue;
+    }
+    html+=`<button class="pag-btn${p===currentPage?' active':''}" onclick="goPage(${p})">${p}</button>`;
+  }
+  html+=`<button class="pag-btn" onclick="goPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>
+    <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 2l4 4-4 4"/></svg>
+  </button>`;
+  btns.innerHTML=html;
+}
+function goPage(p) {
+  const pages=Math.ceil(filtered.length/perPage);
+  if(p<1||p>pages) return;
+  currentPage=p; renderTable(); updatePagination();
+}
+
+/* ══════════════════════════════════════
+   DETAIL PANEL
+══════════════════════════════════════ */
+const TIMELINE_STEPS = {
+  transit: [{label:'Order Created',done:true},{label:'Picked Up',done:true},{label:'In Transit',active:true},{label:'Customs Clearance',pending:true},{label:'Out for Delivery',pending:true},{label:'Delivered',pending:true}],
+  delivered: [{label:'Order Created',done:true},{label:'Picked Up',done:true},{label:'In Transit',done:true},{label:'Customs Clearance',done:true},{label:'Out for Delivery',done:true},{label:'Delivered',done:true}],
+  pending: [{label:'Order Created',done:true},{label:'Picked Up',active:true},{label:'In Transit',pending:true},{label:'Customs Clearance',pending:true},{label:'Out for Delivery',pending:true},{label:'Delivered',pending:true}],
+  delayed: [{label:'Order Created',done:true},{label:'Picked Up',done:true},{label:'In Transit',active:true},{label:'Delay — Port Congestion',done:true,warn:true},{label:'Customs Clearance',pending:true},{label:'Delivered',pending:true}],
+  customs: [{label:'Order Created',done:true},{label:'Picked Up',done:true},{label:'In Transit',done:true},{label:'Customs Hold',active:true},{label:'Out for Delivery',pending:true},{label:'Delivered',pending:true}],
+};
+
+function openDetail(id) {
+  const s = allShipments.find(x=>x.id===id);
+  if(!s) return;
+  selectedShipment=s;
+  document.getElementById('dpTitle').textContent=s.id;
+  document.getElementById('dpBadge').innerHTML=`<span class="badge ${s.status}">${STATUS_LABEL[s.status]}</span>`;
+
+  const steps = TIMELINE_STEPS[s.status]||TIMELINE_STEPS.transit;
+  const doneCount = steps.filter(x=>x.done).length;
+  const total = steps.length;
+
+  document.getElementById('dpScroll').innerHTML = `
+    <!-- PROGRESS VISUAL -->
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-3);margin-bottom:8px">
+        <span>Progress</span><span style="font-weight:600;color:var(--text-2)">${doneCount}/${total} steps</span>
+      </div>
+      <div class="progress-steps">${steps.map(st=>`<div class="ps-step ${st.done?'done':st.active?'active':''}"></div>`).join('')}</div>
+    </div>
+
+    <!-- ROUTE INFO -->
+    <div class="dp-section">
+      <div class="dp-section-title">Route</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <div style="flex:1;background:var(--bg-3);border-radius:7px;padding:8px 12px;text-align:center">
+          <div style="font-size:11px;color:var(--text-3)">Origin</div>
+          <div style="font-size:14px;font-weight:600;margin-top:2px">${s.origin}</div>
+        </div>
+        <svg viewBox="0 0 20 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:28px;flex-shrink:0;color:var(--text-3)"><path d="M2 5h16M14 2l4 3-4 3"/></svg>
+        <div style="flex:1;background:var(--bg-3);border-radius:7px;padding:8px 12px;text-align:center">
+          <div style="font-size:11px;color:var(--text-3)">Destination</div>
+          <div style="font-size:14px;font-weight:600;margin-top:2px">${s.dest}</div>
+        </div>
+      </div>
+      <div class="dp-row"><span class="dp-key">Mode</span><span class="dp-val">${MODE_ICONS[s.mode]}${s.mode}</span></div>
+      <div class="dp-row"><span class="dp-key">Vessel / Vehicle</span><span class="dp-val">${s.vessel}</span></div>
+      <div class="dp-row"><span class="dp-key">Port of Loading</span><span class="dp-val">${s.port}</span></div>
+      <div class="dp-row"><span class="dp-key">ETA</span><span class="dp-val mono">${fmtDate(s.eta)}</span></div>
+      <div class="dp-row"><span class="dp-key">Created</span><span class="dp-val mono">${fmtDate(s.created)}</span></div>
+    </div>
+
+    <!-- CARGO -->
+    <div class="dp-section">
+      <div class="dp-section-title">Cargo</div>
+      <div class="dp-row"><span class="dp-key">Customer</span><span class="dp-val">${s.customer}</span></div>
+      <div class="dp-row"><span class="dp-key">Cargo Type</span><span class="dp-val">${s.type}</span></div>
+      <div class="dp-row"><span class="dp-key">Weight</span><span class="dp-val">${s.weight.toLocaleString()} kg</span></div>
+      <div class="dp-row"><span class="dp-key">Containers</span><span class="dp-val">${s.containers} × 20ft</span></div>
+      <div class="dp-row"><span class="dp-key">Incoterm</span><span class="dp-val">${s.incoterm}</span></div>
+      <div class="dp-row"><span class="dp-key">Insurance Value</span><span class="dp-val">${s.insurance}</span></div>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="dp-section">
+      <div class="dp-section-title">Contact</div>
+      <div class="dp-row"><span class="dp-key">Name</span><span class="dp-val">${s.contact}</span></div>
+      <div class="dp-row"><span class="dp-key">Email</span><span class="dp-val" style="color:var(--blue)">${s.email}</span></div>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="dp-section">
+      <div class="dp-section-title">Tracking Timeline</div>
+    </div>
+    <div class="timeline">
+      ${steps.map((st,i)=>`
+        <div class="tl-item">
+          <div class="tl-dot ${st.done?'done':st.active?'active':'pending'}"></div>
+          <div class="tl-body">
+            <div class="tl-label" style="${st.warn?'color:var(--amber)':''}">${st.label}</div>
+            <div class="tl-meta">${st.done?(i===0?fmtDate(s.created):'Completed'):st.active?'In progress':'Awaiting'}</div>
+          </div>
+        </div>`).join('')}
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="dp-section" style="display:flex;flex-direction:column;gap:8px">
+      <div class="dp-section-title">Actions</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn" style="justify-content:center" onclick="updateStatus('${s.id}','transit')">Mark In Transit</button>
+        <button class="btn" style="justify-content:center" onclick="updateStatus('${s.id}','delivered')">Mark Delivered</button>
+        <button class="btn" style="justify-content:center" onclick="updateStatus('${s.id}','delayed')">Mark Delayed</button>
+        <button class="btn" style="justify-content:center;color:var(--red)" onclick="deleteShipment('${s.id}')">Delete</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('detailPanel').classList.add('open');
+  renderTable();
+}
+
+function closeDetail() {
+  selectedShipment=null;
+  document.getElementById('detailPanel').classList.remove('open');
+  renderTable();
+}
+
+function updateStatus(id, status) {
+  const s = allShipments.find(x=>x.id===id);
+  if(!s) return;
+  s.status=status;
+  applyFilters();
+  openDetail(id);
+}
+
+function deleteShipment(id) {
+  if(!confirm('Delete this shipment?')) return;
+  allShipments=allShipments.filter(x=>x.id!==id);
+  closeDetail(); applyFilters();
+}
+
+/* ══════════════════════════════════════
+   COLUMN VISIBILITY
+══════════════════════════════════════ */
+function renderColToggles() {
+  document.getElementById('colToggles').innerHTML = COLUMNS.map((c,i)=>`
+    <div class="col-toggle-item" onclick="toggleCol(${i})">
+      <div class="col-check ${c.visible?'checked':''}">
+        <svg viewBox="0 0 9 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 3.5l2.5 2.5 5-5"/></svg>
+      </div>
+      ${c.label}
+    </div>`).join('');
+}
+function toggleCol(i) {
+  COLUMNS[i].visible = !COLUMNS[i].visible;
+  renderColToggles(); renderTable();
+}
+function toggleColMenu() {
+  const m=document.getElementById('colMenu');
+  m.style.display=m.style.display==='none'?'block':'none';
+  renderColToggles();
+}
+document.addEventListener('click',()=>{ document.getElementById('colMenu').style.display='none'; });
+
+/* ══════════════════════════════════════
+   MODAL
+══════════════════════════════════════ */
+function openModal() { document.getElementById('modalOverlay').classList.add('open'); }
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+function closeModalOutside(e) { if(e.target===document.getElementById('modalOverlay')) closeModal(); }
+function createShipment() {
+  const origin=document.getElementById('fOrigin').value.trim();
+  const dest=document.getElementById('fDest').value.trim();
+  const customer=document.getElementById('fCustomer').value.trim();
+  if(!origin||!dest||!customer){alert('Please fill in Origin, Destination, and Customer.');return;}
+  const etaVal=document.getElementById('fETA').value;
+  const eta=etaVal?new Date(etaVal):new Date(Date.now()+randInt(5,30)*86400000);
+  const prefixes=['SHG','DXB','SGP','NEW','FRT'];
+  const newS = {
+    id:`${randItem(prefixes)}-${String(Date.now()).slice(-5)}`,
+    origin, dest, customer,
+    weight:parseInt(document.getElementById('fWeight').value)||randInt(200,5000),
+    mode:document.getElementById('fMode').value,
+    type:document.getElementById('fType').value,
+    status:'pending',
+    eta, created:new Date(),
+    containers:parseInt(document.getElementById('fContainers').value)||1,
+    contact:document.getElementById('fContact').value||'—',
+    email:document.getElementById('fEmail').value||'—',
+    notes:document.getElementById('fNotes').value,
+    vessel:'TBD',
+    port:'TBD',
+    insurance:'TBD',
+    incoterm:'FOB',
+  };
+  allShipments.unshift(newS);
+  closeModal();
+  ['fOrigin','fDest','fCustomer','fWeight','fContact','fEmail','fNotes','fContainers'].forEach(id=>document.getElementById(id).value='');
+  applyFilters();
+  openDetail(newS.id);
+}
+
+/* ══════════════════════════════════════
+   EXPORT
+══════════════════════════════════════ */
+function exportCSV() {
+  const cols = COLUMNS.filter(c=>c.visible&&c.key!=='route');
+  const header = ['ID','Origin','Destination','Customer','Weight','Mode','Type','Containers','ETA','Created','Status'];
+  const rows = filtered.map(s=>[s.id,s.origin,s.dest,s.customer,s.weight,s.mode,s.type,s.containers,fmtDate(s.eta),fmtDate(s.created),STATUS_LABEL[s.status]]);
+  const csv = [header,...rows].map(r=>r.join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='shipments.csv'; a.click();
+}
+
+/* ══════════════════════════════════════
+   SIDEBAR / THEME / PAGES
+══════════════════════════════════════ */
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+function toggleTheme() {
+  const html=document.documentElement;
+  const isDark=html.getAttribute('data-theme')==='dark';
+  html.setAttribute('data-theme',isDark?'light':'dark');
+  document.getElementById('themeIcon').innerHTML=isDark
+    ?`<path d="M8 1a7 7 0 000 14A7 7 0 008 1z" stroke-linecap="round"/>`
+    :`<circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4"/>`;
+}
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const page = document.getElementById('page-'+id) || document.getElementById('page-placeholder');
+  page.classList.add('active');
+  el.classList.add('active');
+  document.getElementById('pageTitle').textContent = el.querySelector('.nav-label')?.textContent||'';
+}
+
+/* ══════════════════════════════════════
+   DASHBOARD BAR CHART
+══════════════════════════════════════ */
+function initBarChart() {
+  const weeks=['W16','W17','W18','W19','W20','W21','W22','W23'];
+  const vals=[68,82,74,91,87,95,78,103];
+  const maxV=Math.max(...vals);
+  const chart=document.getElementById('barChart');
+  if(!chart) return;
+  weeks.forEach((w,i)=>{
+    const col=document.createElement('div'); col.className='bar-col';
+    col.innerHTML=`<div class="bar-fill${i===weeks.length-1?' highlight':''}" style="height:0" data-h="${(vals[i]/maxV*100).toFixed(1)}%"></ div><span class="bar-label">${w}</span>`;
+    chart.appendChild(col);
+  });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    document.querySelectorAll('.bar-fill').forEach((b,i)=>{
+      b.style.transition=`height 0.5s cubic-bezier(0.4,0,0.2,1) ${i*0.05}s`;
+      b.style.height=b.dataset.h;
+    });
+  }));
+}
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+// Default to shipments page
+showPage('shipments', document.querySelector('.nav-item.active'));
+applyFilters();
+initBarChart();
+</script>
+</body>
+</html>

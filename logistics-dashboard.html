@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CargoOS — Logistics Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue:#3B82F6; --blue-dim:rgba(59,130,246,0.12); --blue-border:rgba(59,130,246,0.3);
+  --bg:#0F1117; --bg-2:#161923; --bg-3:#1D2230; --bg-4:#242A38;
+  --border:rgba(255,255,255,0.07); --border-strong:rgba(255,255,255,0.12);
+  --text-1:#F1F3F7; --text-2:#9BA3B5; --text-3:#6B7385;
+  --green:#22C55E; --amber:#F59E0B; --red:#EF4444; --purple:#A78BFA;
+  --green-dim:rgba(34,197,94,0.1); --amber-dim:rgba(245,158,11,0.1);
+  --red-dim:rgba(239,68,68,0.1); --purple-dim:rgba(167,139,250,0.1);
+  --sidebar-w:240px; --sidebar-collapsed:60px;
+  --radius:10px; --transition:0.22s cubic-bezier(0.4,0,0.2,1);
+}
+[data-theme="light"] {
+  --bg:#F4F5F8; --bg-2:#FFFFFF; --bg-3:#F0F1F5; --bg-4:#E8EAEF;
+  --border:rgba(0,0,0,0.07); --border-strong:rgba(0,0,0,0.12);
+  --text-1:#111827; --text-2:#4B5563; --text-3:#9CA3AF;
+  --blue-dim:rgba(59,130,246,0.08);
+}
+
+html,body{height:100%;background:var(--bg);color:var(--text-1);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.5;overflow:hidden;}
+.shell{display:flex;height:100vh;}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);height:100vh;background:var(--bg-2);border-right:1px solid var(--border);display:flex;flex-direction:column;transition:width var(--transition),min-width var(--transition);overflow:hidden;position:relative;z-index:10;}
+.sidebar.collapsed{width:var(--sidebar-collapsed);min-width:var(--sidebar-collapsed);}
+.sidebar-header{height:56px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid var(--border);gap:10px;flex-shrink:0;}
+.logo-mark{width:28px;height:28px;background:var(--blue);border-radius:7px;display:grid;place-items:center;flex-shrink:0;color:white;}
+.logo-mark svg{width:16px;height:16px;}
+.logo-text{font-size:15px;font-weight:600;letter-spacing:-.02em;color:var(--text-1);white-space:nowrap;overflow:hidden;transition:opacity var(--transition);}
+.sidebar.collapsed .logo-text{opacity:0;pointer-events:none;}
+.toggle-btn{position:absolute;top:14px;right:-12px;width:24px;height:24px;background:var(--bg-3);border:1px solid var(--border-strong);border-radius:50%;cursor:pointer;display:grid;place-items:center;color:var(--text-3);transition:background var(--transition),color var(--transition),transform var(--transition);z-index:20;}
+.toggle-btn:hover{background:var(--bg-4);color:var(--text-1);}
+.sidebar.collapsed .toggle-btn{transform:rotate(180deg);}
+.toggle-btn svg{width:12px;height:12px;}
+.sidebar-nav{flex:1;padding:12px 8px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;overflow-x:hidden;}
+.nav-section-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);padding:8px 8px 4px;white-space:nowrap;overflow:hidden;transition:opacity var(--transition);}
+.sidebar.collapsed .nav-section-label{opacity:0;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px;border-radius:7px;cursor:pointer;color:var(--text-2);transition:background var(--transition),color var(--transition);white-space:nowrap;overflow:hidden;}
+.nav-item:hover{background:var(--bg-3);color:var(--text-1);}
+.nav-item.active{background:var(--blue-dim);color:var(--blue);}
+.nav-icon{width:18px;height:18px;flex-shrink:0;}
+.nav-label{font-size:13.5px;font-weight:500;transition:opacity var(--transition);}
+.sidebar.collapsed .nav-label{opacity:0;}
+.nav-badge{margin-left:auto;font-size:10px;font-weight:600;background:var(--blue);color:white;padding:1px 6px;border-radius:20px;transition:opacity var(--transition);}
+.sidebar.collapsed .nav-badge{opacity:0;}
+.sidebar-footer{padding:12px 8px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#3B82F6,#7C3AED);display:grid;place-items:center;flex-shrink:0;font-size:12px;font-weight:600;color:white;}
+.user-info{overflow:hidden;transition:opacity var(--transition);}
+.sidebar.collapsed .user-info{opacity:0;}
+.user-name{font-size:13px;font-weight:500;color:var(--text-1);}
+.user-role{font-size:11px;color:var(--text-3);}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.topbar{height:56px;display:flex;align-items:center;gap:12px;padding:0 24px;border-bottom:1px solid var(--border);background:var(--bg-2);flex-shrink:0;}
+.topbar-title{font-size:17px;font-weight:600;letter-spacing:-.02em;flex:1;}
+.topbar-actions{display:flex;align-items:center;gap:8px;}
+.btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border-strong);background:var(--bg-3);color:var(--text-1);transition:background var(--transition),border-color var(--transition);}
+.btn:hover{background:var(--bg-4);}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:white;}
+.btn.primary:hover{background:#2563EB;border-color:#2563EB;}
+.btn svg{width:14px;height:14px;}
+.btn.active-filter{background:var(--blue-dim);border-color:var(--blue-border);color:var(--blue);}
+.btn.danger{background:var(--red-dim);border-color:rgba(239,68,68,0.3);color:var(--red);}
+.btn.danger:hover{background:rgba(239,68,68,0.2);}
+.icon-btn{width:34px;height:34px;border-radius:7px;background:var(--bg-3);border:1px solid var(--border);display:grid;place-items:center;cursor:pointer;color:var(--text-2);transition:background var(--transition),color var(--transition);}
+.icon-btn:hover{background:var(--bg-4);color:var(--text-1);}
+.icon-btn svg{width:16px;height:16px;}
+
+/* PAGES */
+.page{display:none;flex:1;overflow:hidden;flex-direction:column;}
+.page.active{display:flex;}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:20px;}
+.content::-webkit-scrollbar{width:6px;}
+.content::-webkit-scrollbar-track{background:transparent;}
+.content::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px;}
+
+/* STAT CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.stat-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:border-color var(--transition);animation:fadeUp .4s ease both;}
+.stat-card:nth-child(1){animation-delay:.05s;}.stat-card:nth-child(2){animation-delay:.1s;}.stat-card:nth-child(3){animation-delay:.15s;}.stat-card:nth-child(4){animation-delay:.2s;}
+.stat-card:hover{border-color:var(--border-strong);}
+.stat-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+.stat-icon{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;}
+.stat-icon svg{width:18px;height:18px;}
+.stat-change{font-size:12px;font-weight:500;padding:3px 8px;border-radius:20px;}
+.stat-change.up{background:var(--green-dim);color:var(--green);}
+.stat-change.down{background:var(--red-dim);color:var(--red);}
+.stat-value{font-size:28px;font-weight:600;letter-spacing:-.03em;line-height:1;margin-bottom:4px;}
+.stat-label{font-size:12.5px;color:var(--text-3);}
+.progress-bar{height:3px;background:var(--bg-4);border-radius:2px;overflow:hidden;margin-top:6px;}
+.progress-fill{height:100%;border-radius:2px;background:var(--blue);transition:width 1s cubic-bezier(0.4,0,0.2,1);}
+
+/* CARD */
+.card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+.card-title{font-size:14px;font-weight:600;}
+.card-subtitle{font-size:12px;color:var(--text-3);margin-top:1px;}
+
+/* LAYOUT */
+.two-col{display:grid;grid-template-columns:1fr 340px;gap:14px;}
+
+/* BAR CHART */
+.chart-wrap{padding:16px 20px 8px;}
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:100px;}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.bar-fill{width:100%;border-radius:4px 4px 0 0;background:var(--blue-dim);border-top:2px solid var(--blue);min-height:2px;}
+.bar-fill.highlight{background:rgba(59,130,246,0.25);}
+.bar-label{font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace;}
+.chart-legend{display:flex;gap:16px;padding:10px 20px 16px;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-3);}
+.legend-dot{width:8px;height:8px;border-radius:2px;}
+
+/* ROUTE LIST */
+.route-list{display:flex;flex-direction:column;}
+.route-item{display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--border);transition:background var(--transition);cursor:pointer;}
+.route-item:last-child{border-bottom:none;}
+.route-item:hover{background:var(--bg-3);}
+.route-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.route-info{flex:1;}
+.route-name{font-size:13px;font-weight:500;}
+.route-meta{font-size:11.5px;color:var(--text-3);margin-top:1px;}
+.route-count{font-family:'DM Mono',monospace;font-size:12px;color:var(--text-2);font-weight:500;}
+
+/* MINI STAT */
+.mini-stat-row{display:flex;flex-direction:column;}
+.mini-stat{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);}
+.mini-stat:last-child{border-bottom:none;}
+.mini-stat-icon{width:32px;height:32px;border-radius:7px;display:grid;place-items:center;flex-shrink:0;}
+.mini-stat-icon svg{width:15px;height:15px;}
+.mini-stat-body{flex:1;}
+.mini-stat-label{font-size:11.5px;color:var(--text-3);}
+.mini-stat-value{font-size:14px;font-weight:600;}
+.mini-stat-bar{height:4px;background:var(--bg-4);border-radius:2px;overflow:hidden;margin-top:4px;}
+.mini-stat-bar-fill{height:100%;border-radius:2px;background:var(--blue);}
+
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse;}
+.data-table thead th{text-align:left;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);padding:10px 16px;border-bottom:1px solid var(--border);white-space:nowrap;user-select:none;}
+.data-table thead th.sortable{cursor:pointer;transition:color var(--transition);}
+.data-table thead th.sortable:hover{color:var(--text-2);}
+.data-table thead th .si{display:inline-block;margin-left:4px;font-size:9px;opacity:.4;}
+.data-table thead th.sa .si::after,.data-table thead th.sd .si::after{opacity:1;}
+.data-table thead th.sa .si::after{content:'↑';}
+.data-table thead th.sd .si::after{content:'↓';}
+.data-table thead th:not(.sa):not(.sd) .si::after{content:'↕';}
+.data-table tbody tr{border-bottom:1px solid var(--border);transition:background var(--transition);cursor:pointer;}
+.data-table tbody tr:last-child{border-bottom:none;}
+.data-table tbody tr:hover{background:var(--bg-3);}
+.data-table tbody tr.row-sel{background:var(--blue-dim);}
+.data-table td{padding:11px 16px;font-size:13px;vertical-align:middle;}
+.td-mono{font-family:'DM Mono',monospace;font-size:12px;color:var(--blue);font-weight:500;}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:500;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
+.badge.transit{background:var(--blue-dim);color:var(--blue);}
+.badge.delivered{background:var(--green-dim);color:var(--green);}
+.badge.pending{background:var(--amber-dim);color:var(--amber);}
+.badge.delayed{background:var(--red-dim);color:var(--red);}
+.badge.customs{background:var(--purple-dim);color:var(--purple);}
+
+/* SEARCH */
+.search-wrap{display:flex;align-items:center;gap:8px;background:var(--bg-3);border:1px solid var(--border);border-radius:7px;padding:0 12px;height:34px;transition:border-color var(--transition);}
+.search-wrap:focus-within{border-color:var(--blue);}
+.search-wrap svg{width:14px;height:14px;color:var(--text-3);flex-shrink:0;}
+.search-wrap input{background:none;border:none;outline:none;font-family:inherit;font-size:13px;color:var(--text-1);}
+.search-wrap input::placeholder{color:var(--text-3);}
+
+/* FILTER TABS */
+.filter-tabs{display:flex;gap:4px;background:var(--bg-3);border:1px solid var(--border);border-radius:8px;padding:3px;}
+.filter-tab{padding:5px 12px;border-radius:6px;font-size:12.5px;font-weight:500;cursor:pointer;color:var(--text-2);transition:background var(--transition),color var(--transition);white-space:nowrap;}
+.filter-tab.active{background:var(--bg-2);color:var(--text-1);box-shadow:0 1px 3px rgba(0,0,0,0.3);}
+
+/* FILTER PANEL */
+.filter-panel{display:none;padding:14px 16px;gap:12px;flex-wrap:wrap;align-items:flex-end;border-bottom:1px solid var(--border);}
+.filter-panel.open{display:flex;}
+.filter-group{display:flex;flex-direction:column;gap:5px;min-width:130px;}
+.filter-group label{font-size:11.5px;font-weight:500;color:var(--text-3);}
+
+/* FORM */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group.full{grid-column:1/-1;}
+.form-label{font-size:12px;font-weight:500;color:var(--text-2);}
+.form-input,.form-select,.form-textarea{background:var(--bg-3);border:1px solid var(--border-strong);border-radius:7px;padding:8px 12px;font-family:inherit;font-size:13px;color:var(--text-1);outline:none;transition:border-color var(--transition);}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--blue);}
+.form-input::placeholder,.form-textarea::placeholder{color:var(--text-3);}
+.form-select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%236B7385' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px;}
+.form-textarea{resize:vertical;min-height:72px;}
+.form-section-title{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);padding-top:4px;border-top:1px solid var(--border);}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;gap:6px;padding:14px 16px;border-top:1px solid var(--border);}
+.page-info{font-size:12.5px;color:var(--text-3);flex:1;}
+.page-btn{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--bg-3);color:var(--text-2);cursor:pointer;display:grid;place-items:center;font-size:12.5px;font-weight:500;transition:background var(--transition),color var(--transition);}
+.page-btn:hover:not(:disabled){background:var(--bg-4);color:var(--text-1);}
+.page-btn.active{background:var(--blue);border-color:var(--blue);color:white;}
+.page-btn:disabled{opacity:.35;cursor:not-allowed;}
+.page-btn svg{width:12px;height:12px;}
+
+/* DETAIL PANEL */
+.detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:50;opacity:0;pointer-events:none;transition:opacity var(--transition);}
+.detail-overlay.open{opacity:1;pointer-events:all;}
+.detail-panel{position:fixed;top:0;right:0;height:100vh;width:480px;max-width:95vw;background:var(--bg-2);border-left:1px solid var(--border);z-index:51;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);}
+.detail-panel.open{transform:translateX(0);}
+.dp-header{height:56px;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);gap:10px;flex-shrink:0;}
+.dp-id{font-family:'DM Mono',monospace;font-size:13px;color:var(--blue);font-weight:500;}
+.dp-close{margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text-3);display:grid;place-items:center;width:28px;height:28px;border-radius:6px;transition:background var(--transition),color var(--transition);}
+.dp-close:hover{background:var(--bg-3);color:var(--text-1);}
+.dp-close svg{width:16px;height:16px;}
+.dp-body{flex:1;overflow-y:auto;padding:20px;}
+.dp-body::-webkit-scrollbar{width:4px;}
+.dp-body::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:2px;}
+.dp-section{margin-bottom:24px;}
+.dp-section-title{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px;}
+.dp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.dp-field-label{font-size:11.5px;color:var(--text-3);margin-bottom:3px;}
+.dp-field-value{font-size:13.5px;font-weight:500;}
+.dp-field-value.mono{font-family:'DM Mono',monospace;font-size:12.5px;color:var(--blue);}
+
+/* TIMELINE */
+.tl{display:flex;flex-direction:column;}
+.tl-item{display:flex;gap:12px;position:relative;}
+.tl-item:not(:last-child)::before{content:'';position:absolute;left:7px;top:18px;bottom:-4px;width:1px;background:var(--border);}
+.tl-dot{width:15px;height:15px;border-radius:50%;flex-shrink:0;margin-top:3px;border:2px solid;}
+.tl-dot.done{background:var(--green);border-color:var(--green);}
+.tl-dot.cur{background:var(--blue);border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim);}
+.tl-dot.pend{background:var(--bg-3);border-color:var(--border-strong);}
+.tl-body{flex:1;padding-bottom:14px;}
+.tl-label{font-size:13px;font-weight:500;}
+.tl-meta{font-size:11.5px;color:var(--text-3);margin-top:1px;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;display:none;align-items:center;justify-content:center;padding:24px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg-2);border:1px solid var(--border-strong);border-radius:12px;width:560px;max-width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,0.5);}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.modal-title{font-size:16px;font-weight:600;flex:1;}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--text-3);display:grid;place-items:center;width:28px;height:28px;border-radius:6px;transition:background var(--transition),color var(--transition);}
+.modal-close:hover{background:var(--bg-3);color:var(--text-1);}
+.modal-close svg{width:16px;height:16px;}
+.modal-body{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:14px;}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;flex-shrink:0;}
+
+/* CONFIRM */
+.confirm-modal{background:var(--bg-2);border:1px solid var(--border-strong);border-radius:12px;width:380px;max-width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.5);padding:24px;}
+.confirm-modal h3{font-size:15px;font-weight:600;margin-bottom:8px;}
+.confirm-modal p{font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:20px;}
+.confirm-btns{display:flex;gap:8px;justify-content:flex-end;}
+
+/* BULK BAR */
+.bulk-bar{display:none;padding:10px 16px;border-top:1px solid var(--border);background:var(--blue-dim);align-items:center;gap:10px;}
+.bulk-bar.show{display:flex;}
+
+/* EMPTY */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:56px 24px;color:var(--text-3);gap:12px;}
+.empty-state svg{width:36px;height:36px;opacity:.25;}
+.empty-state p{font-size:13px;text-align:center;line-height:1.7;}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:200;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--bg-3);border:1px solid var(--border-strong);border-radius:8px;padding:11px 15px;font-size:13px;color:var(--text-1);box-shadow:0 4px 20px rgba(0,0,0,0.3);display:flex;align-items:center;gap:10px;min-width:240px;animation:slideIn .25s ease;transition:opacity .3s,transform .3s;}
+.toast.success{border-left:3px solid var(--green);}
+.toast.error{border-left:3px solid var(--red);}
+.toast.info{border-left:3px solid var(--blue);}
+
+/* ROW MENU */
+.row-menu{display:none;position:absolute;right:0;top:34px;background:var(--bg-2);border:1px solid var(--border-strong);border-radius:8px;z-index:30;min-width:148px;box-shadow:0 8px 24px rgba(0,0,0,0.3);overflow:hidden;padding:4px;}
+.row-menu.open{display:block;}
+.row-menu-item{padding:7px 10px;font-size:12.5px;border-radius:5px;cursor:pointer;color:var(--text-2);transition:background var(--transition),color var(--transition);}
+.row-menu-item:hover{background:var(--bg-3);color:var(--text-1);}
+.row-menu-item.green{color:var(--green);}
+.row-menu-item.red{color:var(--red);}
+.row-menu-divider{height:1px;background:var(--border);margin:4px 0;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+@keyframes slideIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo-mark">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="1" y="5" width="14" height="9" rx="1.5"/>
+        <path d="M4 5V4a2 2 0 014 0v1"/><path d="M8 5V3a2 2 0 014 0v2"/>
+        <circle cx="5" cy="9.5" r="1" fill="currentColor" stroke="none"/>
+        <circle cx="11" cy="9.5" r="1" fill="currentColor" stroke="none"/>
+      </svg>
+    </div>
+    <span class="logo-text">CargoOS</span>
+  </div>
+  <button class="toggle-btn" onclick="toggleSidebar()">
+    <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7.5 2L3.5 6l4 4"/></svg>
+  </button>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Operations</div>
+    <div class="nav-item" id="nav-dashboard" onclick="showPage('dashboard',this)">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="1.5" y="1.5" width="6" height="6" rx="1.5"/><rect x="10.5" y="1.5" width="6" height="6" rx="1.5"/><rect x="1.5" y="10.5" width="6" height="6" rx="1.5"/><rect x="10.5" y="10.5" width="6" height="6" rx="1.5"/></svg>
+      <span class="nav-label">Dashboard</span>
+    </div>
+    <div class="nav-item active" id="nav-shipments" onclick="showPage('shipments',this)">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 4h14v10a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/><path d="M6 4V2.5A.5.5 0 016.5 2h5a.5.5 0 01.5.5V4"/><path d="M2 8h14"/></svg>
+      <span class="nav-label">Shipments</span>
+      <span class="nav-badge" id="sidebarBadge">—</span>
+    </div>
+    <div class="nav-item" onclick="showPage('dashboard',this)">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="1" y="5" width="12" height="9" rx="1.5"/><path d="M13 8l3 2v4h-3V8z"/><circle cx="4.5" cy="14" r="1.5"/><circle cx="10.5" cy="14" r="1.5"/><circle cx="15" cy="14" r="1.5"/></svg>
+      <span class="nav-label">Fleet</span>
+    </div>
+    <div class="nav-item" onclick="showPage('dashboard',this)">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="4" cy="4" r="2"/><circle cx="14" cy="14" r="2"/><path d="M4 6c0 5 10 3 10 8"/></svg>
+      <span class="nav-label">Routes</span>
+    </div>
+    <div class="nav-item" onclick="showPage('dashboard',this)">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 8L9 2l7 6v8H2V8z"/><rect x="7" y="11" width="4" height="5"/></svg>
+      <span class="nav-label">Warehouses</span>
+    </div>
+    <div class="nav-section-label" style="margin-top:8px">Management</div>
+    <div class="nav-item" onclick="showPage('dashboard',this)">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="6" r="3"/><path d="M2 17c0-3.866 3.134-7 7-7s7 3.134 7 7"/></svg>
+      <span class="nav-label">Customers</span>
+    </div>
+    <div class="nav-item" onclick="showPage('dashboard',this)">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="2" y="4" width="14" height="11" rx="1.5"/><path d="M2 8h14"/><path d="M6 12h2M10 12h2"/></svg>
+      <span class="nav-label">Billing</span>
+    </div>
+    <div class="nav-item" onclick="showPage('dashboard',this)">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 14V9M8 14V5M12 14v-3M16 14v-7"/></svg>
+      <span class="nav-label">Reports</span>
+    </div>
+    <div class="nav-section-label" style="margin-top:8px">System</div>
+    <div class="nav-item" onclick="showPage('dashboard',this)">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="9" r="2.5"/><path d="M9 1v2M9 15v2M1 9h2M15 9h2M3.1 3.1l1.4 1.4M13.5 13.5l1.4 1.4M3.1 14.9l1.4-1.4M13.5 4.5l1.4-1.4"/></svg>
+      <span class="nav-label">Settings</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="avatar">AK</div>
+    <div class="user-info">
+      <div class="user-name">Amir Khalil</div>
+      <div class="user-role">Ops Manager</div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <span class="topbar-title" id="pageTitle">Shipments</span>
+    <div class="topbar-actions">
+      <div class="search-wrap">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg>
+        <input type="text" id="globalSearch" placeholder="Search cargo, routes…" oninput="onGlobalSearch(this.value)" style="width:160px">
+      </div>
+      <button class="icon-btn" onclick="toggleTheme()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" id="themeIcon">
+          <circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4"/>
+        </svg>
+      </button>
+      <button class="icon-btn" style="position:relative">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 1a5 5 0 015 5v3l1.5 2H1.5L3 9V6a5 5 0 015-5z"/><path d="M6.5 13a1.5 1.5 0 003 0"/></svg>
+        <span style="position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid var(--bg-2)"></span>
+      </button>
+      <button class="btn primary" onclick="openCreateModal()">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 1v12M1 7h12"/></svg>
+        New Shipment
+      </button>
+    </div>
+  </header>
+
+  <!-- DASHBOARD PAGE -->
+  <div class="page" id="page-dashboard">
+    <div class="content">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--blue-dim);color:var(--blue)"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="1" y="5" width="12" height="9" rx="1.5"/><path d="M13 8l3 2v4h-3V8z"/><circle cx="4.5" cy="14" r="1.5"/><circle cx="10.5" cy="14" r="1.5"/><circle cx="15" cy="14" r="1.5"/></svg></div><span class="stat-change up">↑ 8.4%</span></div><div class="stat-value">1,284</div><div class="stat-label">Active Shipments</div><div class="progress-bar"><div class="progress-fill" style="width:72%"></div></div></div>
+        <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--green-dim);color:var(--green)"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M2 9l5 5 9-9"/></svg></div><span class="stat-change up">↑ 2.1%</span></div><div class="stat-value" style="color:var(--green)">94.7%</div><div class="stat-label">On-time Delivery</div><div class="progress-bar"><div class="progress-fill" style="width:94.7%;background:var(--green)"></div></div></div>
+        <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--amber-dim);color:var(--amber)"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="9" r="7"/><path d="M9 5v4l2.5 2.5"/></svg></div><span class="stat-change down">↓ 1.2%</span></div><div class="stat-value">38</div><div class="stat-label">Pending Clearance</div><div class="progress-bar"><div class="progress-fill" style="width:38%;background:var(--amber)"></div></div></div>
+        <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--purple-dim);color:var(--purple)"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="2" y="4" width="14" height="11" rx="1.5"/><path d="M2 8h14M6 2v4M12 2v4"/></svg></div><span class="stat-change up">↑ 12.8%</span></div><div class="stat-value">$2.4M</div><div class="stat-label">Revenue This Month</div><div class="progress-bar"><div class="progress-fill" style="width:60%;background:var(--purple)"></div></div></div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><div><div class="card-title">Cargo Volume</div><div class="card-subtitle">Shipments dispatched per week</div></div></div>
+          <div class="chart-wrap"><div class="bar-chart" id="barChart"></div></div>
+          <div class="chart-legend"><div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Dispatched</div><div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Delivered</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div><div class="card-title">Active Routes</div></div><span style="font-size:11.5px;color:var(--blue);cursor:pointer;font-weight:500" onclick="showPage('shipments',document.getElementById('nav-shipments'))">View all →</span></div>
+          <div class="route-list">
+            <div class="route-item"><div class="route-dot" style="background:var(--green)"></div><div class="route-info"><div class="route-name">Shanghai → Rotterdam</div><div class="route-meta">Sea · 28d avg</div></div><span class="route-count">142</span></div>
+            <div class="route-item"><div class="route-dot" style="background:var(--blue)"></div><div class="route-info"><div class="route-name">Dubai → New York</div><div class="route-meta">Air+Sea · 7d avg</div></div><span class="route-count">89</span></div>
+            <div class="route-item"><div class="route-dot" style="background:var(--amber)"></div><div class="route-info"><div class="route-name">Singapore → Los Angeles</div><div class="route-meta">Sea · 22d avg</div></div><span class="route-count">61</span></div>
+            <div class="route-item"><div class="route-dot" style="background:var(--purple)"></div><div class="route-info"><div class="route-name">Frankfurt → Chicago</div><div class="route-meta">Air · 2d avg</div></div><span class="route-count">47</span></div>
+            <div class="route-item"><div class="route-dot" style="background:var(--green)"></div><div class="route-info"><div class="route-name">Dar es Salaam → Mumbai</div><div class="route-meta">Sea · 18d avg</div></div><span class="route-count">33</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHIPMENTS PAGE -->
+  <div class="page active" id="page-shipments">
+    <div class="content">
+
+      <!-- KPI ROW -->
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--blue-dim);color:var(--blue)"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="1" y="5" width="12" height="9" rx="1.5"/><path d="M13 8l3 2v4h-3V8z"/><circle cx="4.5" cy="14" r="1.5"/><circle cx="10.5" cy="14" r="1.5"/><circle cx="15" cy="14" r="1.5"/></svg></div><span class="stat-change up" id="k-transit-c">—</span></div><div class="stat-value" id="k-transit">—</div><div class="stat-label">In Transit</div><div class="progress-bar"><div class="progress-fill" id="k-transit-b" style="width:0%"></div></div></div>
+        <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--green-dim);color:var(--green)"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M2 9l5 5 9-9"/></svg></div><span class="stat-change up" id="k-delivered-c">—</span></div><div class="stat-value" id="k-delivered" style="color:var(--green)">—</div><div class="stat-label">Delivered</div><div class="progress-bar"><div class="progress-fill" id="k-delivered-b" style="width:0%;background:var(--green)"></div></div></div>
+        <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--amber-dim);color:var(--amber)"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="9" r="7"/><path d="M9 5v4l2.5 2.5"/></svg></div><span class="stat-change down" id="k-pending-c">—</span></div><div class="stat-value" id="k-pending">—</div><div class="stat-label">Pending / Customs</div><div class="progress-bar"><div class="progress-fill" id="k-pending-b" style="width:0%;background:var(--amber)"></div></div></div>
+        <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--red-dim);color:var(--red)"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 2L1.5 15h15L9 2z"/><path d="M9 7v4M9 13.5v.5"/></svg></div><span class="stat-change down" id="k-delayed-c">—</span></div><div class="stat-value" id="k-delayed" style="color:var(--red)">—</div><div class="stat-label">Delayed</div><div class="progress-bar"><div class="progress-fill" id="k-delayed-b" style="width:0%;background:var(--red)"></div></div></div>
+      </div>
+
+      <!-- TABLE CARD -->
+      <div class="card" style="overflow:visible">
+
+        <!-- TOP TOOLBAR -->
+        <div style="padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--border)">
+          <div class="filter-tabs" id="statusTabs">
+            <div class="filter-tab active" onclick="setStatus('all',this)">All</div>
+            <div class="filter-tab" onclick="setStatus('transit',this)">In Transit</div>
+            <div class="filter-tab" onclick="setStatus('pending',this)">Pending</div>
+            <div class="filter-tab" onclick="setStatus('customs',this)">Customs</div>
+            <div class="filter-tab" onclick="setStatus('delayed',this)">Delayed</div>
+            <div class="filter-tab" onclick="setStatus('delivered',this)">Delivered</div>
+          </div>
+          <div style="flex:1"></div>
+          <div class="search-wrap" style="width:210px">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg>
+            <input type="text" id="shipSearch" placeholder="ID, city, customer…" oninput="applyFilters()" style="width:100%">
+          </div>
+          <button class="btn" id="filterBtn" onclick="toggleFilterPanel()">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 3h12M3 7h8M5 11h4"/></svg>
+            Filters
+          </button>
+          <button class="btn" onclick="exportCSV()">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M7 1v8M4 6l3 3 3-3M1 10v2a1 1 0 001 1h10a1 1 0 001-1v-2"/></svg>
+            Export
+          </button>
+          <button class="btn primary" onclick="openCreateModal()">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 1v12M1 7h12"/></svg>
+            New
+          </button>
+        </div>
+
+        <!-- FILTER PANEL -->
+        <div class="filter-panel" id="filterPanel">
+          <div class="filter-group">
+            <label>Mode</label>
+            <select class="form-select" id="fMode" onchange="applyFilters()" style="font-size:12.5px;padding:6px 28px 6px 10px">
+              <option value="">All modes</option><option>Sea</option><option>Air</option><option>Road</option><option>Rail</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Origin Country</label>
+            <select class="form-select" id="fOrigin" onchange="applyFilters()" style="font-size:12.5px;padding:6px 28px 6px 10px">
+              <option value="">Any</option>
+              <option>China</option><option>UAE</option><option>Singapore</option><option>Netherlands</option>
+              <option>Tanzania</option><option>India</option><option>Germany</option><option>USA</option><option>Kenya</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>ETA From</label>
+            <input type="date" class="form-input" id="fFrom" onchange="applyFilters()" style="font-size:12.5px;padding:6px 10px">
+          </div>
+          <div class="filter-group">
+            <label>ETA To</label>
+            <input type="date" class="form-input" id="fTo" onchange="applyFilters()" style="font-size:12.5px;padding:6px 10px">
+          </div>
+          <div class="filter-group">
+            <label>Min Weight (kg)</label>
+            <input type="number" class="form-input" id="fWt" placeholder="0" oninput="applyFilters()" style="font-size:12.5px;padding:6px 10px;width:110px">
+          </div>
+          <button class="btn" style="align-self:flex-end" onclick="clearFilters()">Clear all</button>
+        </div>
+
+        <!-- TABLE -->
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:36px;padding-left:16px"><input type="checkbox" id="checkAll" onchange="toggleAll(this)"></th>
+                <th class="sortable" onclick="sortBy('id')">Tracking ID<span class="si"></span></th>
+                <th class="sortable" onclick="sortBy('origin')">Origin<span class="si"></span></th>
+                <th class="sortable" onclick="sortBy('destination')">Destination<span class="si"></span></th>
+                <th class="sortable" onclick="sortBy('customer')">Customer<span class="si"></span></th>
+                <th class="sortable" onclick="sortBy('weight')">Weight<span class="si"></span></th>
+                <th>Mode</th>
+                <th class="sortable" onclick="sortBy('eta')">ETA<span class="si"></span></th>
+                <th class="sortable" onclick="sortBy('status')">Status<span class="si"></span></th>
+                <th style="width:40px"></th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+          <div id="emptyState" class="empty-state" style="display:none">
+            <svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="9" width="22" height="20" rx="2"/><path d="M14 9V7a4 4 0 018 0v2M3 17h22"/></svg>
+            <p>No shipments match your current filters.<br>Try adjusting search or filter criteria.</p>
+          </div>
+        </div>
+
+        <!-- BULK BAR -->
+        <div class="bulk-bar" id="bulkBar">
+          <span id="bulkLabel" style="font-size:13px;font-weight:500;color:var(--blue)"></span>
+          <div style="flex:1"></div>
+          <button class="btn" style="font-size:12.5px;padding:5px 12px" onclick="bulkMarkDelivered()">Mark Delivered</button>
+          <button class="btn danger" style="font-size:12.5px;padding:5px 12px" onclick="bulkDelete()">Delete</button>
+          <button class="btn" style="font-size:12.5px;padding:5px 12px" onclick="clearSel()">Clear selection</button>
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="pagination">
+          <span class="page-info" id="pageInfo"></span>
+          <button class="page-btn" id="btnPrev" onclick="goPage(curPage-1)" disabled>
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7.5 2L3.5 6l4 4"/></svg>
+          </button>
+          <div id="pageNums" style="display:flex;gap:4px"></div>
+          <button class="page-btn" id="btnNext" onclick="goPage(curPage+1)">
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4.5 2l4 4-4 4"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="detail-overlay" id="overlay" onclick="closeDetail()"></div>
+<div class="detail-panel" id="detailPanel">
+  <div class="dp-header">
+    <span class="dp-id" id="dpId"></span>
+    <span id="dpBadge"></span>
+    <div style="flex:1"></div>
+    <button class="btn" style="font-size:12px;padding:5px 10px" onclick="openEditById(currentDetailId)">Edit</button>
+    <button class="btn danger" style="font-size:12px;padding:5px 10px" onclick="confirmDel(currentDetailId)">Delete</button>
+    <button class="dp-close" onclick="closeDetail()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+    </button>
+  </div>
+  <div class="dp-body" id="dpBody"></div>
+</div>
+
+<!-- CREATE/EDIT MODAL -->
+<div class="modal-overlay" id="shipModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">New Shipment</span>
+      <button class="modal-close" onclick="closeModal()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-section-title" style="border:none;padding-top:0">Cargo &amp; Route</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Customer *</label><input class="form-input" id="fc" placeholder="Company name"></div>
+        <div class="form-group"><label class="form-label">Mode *</label><select class="form-select" id="fm"><option value="">Select</option><option>Sea</option><option>Air</option><option>Road</option><option>Rail</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Origin City *</label><input class="form-input" id="fo" placeholder="e.g. Shanghai"></div>
+        <div class="form-group"><label class="form-label">Origin Country *</label><select class="form-select" id="foc"><option value="">Select</option><option>China</option><option>UAE</option><option>Singapore</option><option>Netherlands</option><option>Tanzania</option><option>India</option><option>Germany</option><option>USA</option><option>Kenya</option><option>UK</option><option>Japan</option><option>South Korea</option><option>Australia</option><option>Brazil</option><option>France</option><option>South Africa</option><option>Indonesia</option><option>Turkey</option><option>Thailand</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Destination City *</label><input class="form-input" id="fd" placeholder="e.g. Hamburg"></div>
+        <div class="form-group"><label class="form-label">Destination Country *</label><select class="form-select" id="fdc"><option value="">Select</option><option>Germany</option><option>USA</option><option>UK</option><option>Netherlands</option><option>France</option><option>China</option><option>India</option><option>UAE</option><option>Singapore</option><option>Japan</option><option>Australia</option><option>Brazil</option><option>South Africa</option><option>Indonesia</option><option>Turkey</option></select></div>
+      </div>
+      <div class="form-section-title">Shipment Info</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Weight (kg) *</label><input class="form-input" id="fw" type="number" placeholder="0"></div>
+        <div class="form-group"><label class="form-label">Volume (m³)</label><input class="form-input" id="fv" type="number" placeholder="0"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Status *</label><select class="form-select" id="fs"><option value="transit">In Transit</option><option value="pending">Pending</option><option value="customs">Customs</option><option value="delayed">Delayed</option><option value="delivered">Delivered</option></select></div>
+        <div class="form-group"><label class="form-label">ETA *</label><input class="form-input" id="fe" type="date"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Freight Cost ($)</label><input class="form-input" id="fco" type="number" placeholder="0"></div>
+        <div class="form-group"><label class="form-label">Container / AWB #</label><input class="form-input" id="fct" placeholder="MSCU1234567"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="fn" placeholder="Special instructions…"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" onclick="saveShipment()" id="saveBtn">Create Shipment</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="confirm-modal">
+    <h3 id="confirmTitle">Confirm Action</h3>
+    <p id="confirmMsg">Are you sure?</p>
+    <div class="confirm-btns">
+      <button class="btn" onclick="closeConfirm()">Cancel</button>
+      <button class="btn danger" id="confirmOk">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+let DB = [
+  {id:'SHG-00214',customer:'Siemens AG',origin:'Shanghai',originCountry:'China',destination:'Hamburg',destCountry:'Germany',weight:4200,volume:18,mode:'Sea',eta:'2025-04-02',status:'transit',cost:12400,container:'MSCU1234567',notes:'Priority cargo, handle with care.',created:'2025-03-01'},
+  {id:'DXB-00891',customer:'Amazon Supply',origin:'Dubai',originCountry:'UAE',destination:'Chicago',destCountry:'USA',weight:820,volume:5,mode:'Air',eta:'2025-03-26',status:'transit',cost:5800,container:'AWB-72819234',notes:'',created:'2025-03-15'},
+  {id:'SGP-00441',customer:'Apple Inc.',origin:'Singapore',originCountry:'Singapore',destination:'Los Angeles',destCountry:'USA',weight:12500,volume:42,mode:'Sea',eta:'2025-03-28',status:'customs',cost:31200,container:'OOLU9871234',notes:'Customs documentation submitted. Awaiting clearance.',created:'2025-02-20'},
+  {id:'RTM-00078',customer:'Philips Global',origin:'Rotterdam',originCountry:'Netherlands',destination:'New York',destCountry:'USA',weight:3100,volume:14,mode:'Sea',eta:'2025-03-24',status:'delivered',cost:8700,container:'MSCU7823901',notes:'Delivered on schedule.',created:'2025-02-10'},
+  {id:'NBO-00133',customer:'Unilever Ltd',origin:'Nairobi',originCountry:'Kenya',destination:'London',destCountry:'UK',weight:640,volume:3,mode:'Air',eta:'2025-03-27',status:'pending',cost:3200,container:'AWB-88239021',notes:'Awaiting pickup confirmation.',created:'2025-03-18'},
+  {id:'MUM-00562',customer:'Tata Consultancy',origin:'Mumbai',originCountry:'India',destination:'Frankfurt',destCountry:'Germany',weight:1980,volume:9,mode:'Air',eta:'2025-04-01',status:'transit',cost:7600,container:'AWB-44820192',notes:'',created:'2025-03-12'},
+  {id:'DAR-00091',customer:'TanzaTrade Co.',origin:'Dar es Salaam',originCountry:'Tanzania',destination:'Mumbai',destCountry:'India',weight:7200,volume:28,mode:'Sea',eta:'2025-04-08',status:'delayed',cost:9100,container:'HLCU2340912',notes:'Port congestion at Dar — estimated 72hr delay.',created:'2025-02-28'},
+  {id:'ORD-00714',customer:'Boeing Parts',origin:'Chicago',originCountry:'USA',destination:'Berlin',destCountry:'Germany',weight:9850,volume:35,mode:'Air',eta:'2025-03-25',status:'delivered',cost:44000,container:'AWB-10293847',notes:'Aerospace grade components.',created:'2025-03-05'},
+  {id:'FRA-00302',customer:'BASF SE',origin:'Frankfurt',originCountry:'Germany',destination:'Singapore',destCountry:'Singapore',weight:5600,volume:22,mode:'Sea',eta:'2025-04-15',status:'transit',cost:14200,container:'MSCU8811902',notes:'Chemical cargo, hazmat class 3.',created:'2025-03-08'},
+  {id:'TYO-00188',customer:'Sony Electronics',origin:'Tokyo',originCountry:'Japan',destination:'Los Angeles',destCountry:'USA',weight:2300,volume:10,mode:'Sea',eta:'2025-04-10',status:'transit',cost:6700,container:'OOLU3344221',notes:'',created:'2025-03-11'},
+  {id:'LON-00447',customer:'BP Logistics',origin:'London',originCountry:'UK',destination:'Dubai',destCountry:'UAE',weight:870,volume:4,mode:'Air',eta:'2025-03-29',status:'pending',cost:2900,container:'AWB-55671234',notes:'Waiting for export license.',created:'2025-03-20'},
+  {id:'SEO-00621',customer:'Samsung Heavy',origin:'Seoul',originCountry:'South Korea',destination:'Rotterdam',destCountry:'Netherlands',weight:18400,volume:60,mode:'Sea',eta:'2025-04-20',status:'transit',cost:38000,container:'HLCU4499102',notes:'Oversized cargo, crane required at port.',created:'2025-03-03'},
+  {id:'LAX-00039',customer:'SpaceX Cargo',origin:'Los Angeles',originCountry:'USA',destination:'Singapore',destCountry:'Singapore',weight:3400,volume:15,mode:'Air',eta:'2025-03-31',status:'transit',cost:22000,container:'AWB-99120034',notes:'High-value precision equipment.',created:'2025-03-17'},
+  {id:'BOM-00775',customer:'Reliance Industries',origin:'Mumbai',originCountry:'India',destination:'London',destCountry:'UK',weight:6700,volume:27,mode:'Sea',eta:'2025-04-18',status:'customs',cost:17800,container:'MSCU2200741',notes:'Customs hold pending HS code verification.',created:'2025-02-25'},
+  {id:'SIN-00852',customer:'DHL Supply Chain',origin:'Singapore',originCountry:'Singapore',destination:'Frankfurt',destCountry:'Germany',weight:4100,volume:16,mode:'Sea',eta:'2025-04-12',status:'transit',cost:11300,container:'OOLU7762001',notes:'',created:'2025-03-09'},
+  {id:'NYC-00199',customer:'Maersk Line',origin:'New York',originCountry:'USA',destination:'Shanghai',destCountry:'China',weight:22000,volume:80,mode:'Sea',eta:'2025-04-25',status:'pending',cost:49000,container:'MSCU5544112',notes:'Return cargo — empty containers included.',created:'2025-03-21'},
+  {id:'DUS-00338',customer:'Lufthansa Cargo',origin:'Dusseldorf',originCountry:'Germany',destination:'Nairobi',destCountry:'Kenya',weight:1200,volume:6,mode:'Air',eta:'2025-03-28',status:'delivered',cost:5500,container:'AWB-31190234',notes:'',created:'2025-03-14'},
+  {id:'SYD-00411',customer:'Rio Tinto',origin:'Sydney',originCountry:'Australia',destination:'Shanghai',destCountry:'China',weight:48000,volume:180,mode:'Sea',eta:'2025-05-02',status:'transit',cost:72000,container:'HLCU9900234',notes:'Bulk mineral ore shipment.',created:'2025-03-01'},
+  {id:'CGK-00094',customer:'Garuda Freight',origin:'Jakarta',originCountry:'Indonesia',destination:'Rotterdam',destCountry:'Netherlands',weight:8900,volume:34,mode:'Sea',eta:'2025-04-22',status:'delayed',cost:21400,container:'OOLU1199023',notes:'Engine failure on vessel MSC Mariana. Rerouted.',created:'2025-03-10'},
+  {id:'IST-00667',customer:'Turkish Cargo',origin:'Istanbul',originCountry:'Turkey',destination:'Chicago',destCountry:'USA',weight:3700,volume:14,mode:'Air',eta:'2025-04-03',status:'transit',cost:13200,container:'AWB-66234891',notes:'',created:'2025-03-16'},
+  {id:'JNB-00511',customer:'Anglo American',origin:'Johannesburg',originCountry:'South Africa',destination:'London',destCountry:'UK',weight:15000,volume:55,mode:'Sea',eta:'2025-04-28',status:'transit',cost:33000,container:'MSCU1100998',notes:'Platinum group metals. High security transit.',created:'2025-02-22'},
+  {id:'GRU-00243',customer:'Embraer Export',origin:'São Paulo',originCountry:'Brazil',destination:'Paris',destCountry:'France',weight:2800,volume:11,mode:'Air',eta:'2025-04-06',status:'transit',cost:16500,container:'AWB-77823001',notes:'Aircraft components.',created:'2025-03-13'},
+  {id:'AMS-00781',customer:'Heineken Logistics',origin:'Amsterdam',originCountry:'Netherlands',destination:'New York',destCountry:'USA',weight:24000,volume:90,mode:'Sea',eta:'2025-04-17',status:'transit',cost:41000,container:'MSCU3300887',notes:'Temperature-controlled. Keep 8-12°C.',created:'2025-03-07'},
+  {id:'BKK-00155',customer:'Thai Airways Cargo',origin:'Bangkok',originCountry:'Thailand',destination:'Los Angeles',destCountry:'USA',weight:5100,volume:20,mode:'Air',eta:'2025-04-05',status:'customs',cost:19800,container:'AWB-48223910',notes:'Customs query on declared value.',created:'2025-03-19'},
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let filtered = [];
+let curPage = 1;
+const PER = 10;
+let sortCol = 'eta', sortDir = 'asc';
+let statusFlt = 'all';
+let sel = new Set();
+let editId = null;
+let currentDetailId = null;
+
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  applyFilters();
+  buildChart();
+  showPage('shipments', document.getElementById('nav-shipments'));
+});
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function showPage(name, navEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pg = document.getElementById('page-' + name);
+  if (pg) pg.classList.add('active');
+  if (navEl) navEl.classList.add('active');
+  document.getElementById('pageTitle').textContent = name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+
+function toggleTheme() {
+  const h = document.documentElement;
+  const dark = h.getAttribute('data-theme') === 'dark';
+  h.setAttribute('data-theme', dark ? 'light' : 'dark');
+  document.getElementById('themeIcon').innerHTML = dark
+    ? `<path d="M8 1a7 7 0 000 14A7 7 0 008 1z" stroke-linecap="round"/>`
+    : `<circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4"/>`;
+}
+
+function onGlobalSearch(v) {
+  if (!v.trim()) return;
+  showPage('shipments', document.getElementById('nav-shipments'));
+  document.getElementById('shipSearch').value = v;
+  applyFilters();
+}
+
+// ── FILTERS ───────────────────────────────────────────────────────────────────
+function setStatus(s, el) {
+  statusFlt = s;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  curPage = 1; applyFilters();
+}
+
+function toggleFilterPanel() {
+  const p = document.getElementById('filterPanel');
+  p.classList.toggle('open');
+  document.getElementById('filterBtn').classList.toggle('active-filter', p.classList.contains('open'));
+}
+
+function clearFilters() {
+  ['fMode','fOrigin','fFrom','fTo'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  const wt = document.getElementById('fWt'); if(wt) wt.value='';
+  document.getElementById('shipSearch').value = '';
+  setStatus('all', document.querySelector('.filter-tab'));
+}
+
+function applyFilters() {
+  const q = (document.getElementById('shipSearch')?.value||'').toLowerCase();
+  const fM = document.getElementById('fMode')?.value||'';
+  const fO = document.getElementById('fOrigin')?.value||'';
+  const fF = document.getElementById('fFrom')?.value||'';
+  const fT = document.getElementById('fTo')?.value||'';
+  const fW = parseFloat(document.getElementById('fWt')?.value)||0;
+
+  filtered = DB.filter(s => {
+    if (statusFlt !== 'all' && s.status !== statusFlt) return false;
+    if (fM && s.mode !== fM) return false;
+    if (fO && s.originCountry !== fO) return false;
+    if (fF && s.eta < fF) return false;
+    if (fT && s.eta > fT) return false;
+    if (fW && s.weight < fW) return false;
+    if (q && !`${s.id} ${s.origin} ${s.destination} ${s.customer} ${s.mode} ${s.originCountry} ${s.destCountry}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  filtered.sort((a, b) => {
+    let av = a[sortCol], bv = b[sortCol];
+    if (sortCol === 'weight' || sortCol === 'cost') { av=+av; bv=+bv; }
+    if (av < bv) return sortDir==='asc'?-1:1;
+    if (av > bv) return sortDir==='asc'?1:-1;
+    return 0;
+  });
+
+  updateKpis();
+  renderTable();
+  renderPagination();
+}
+
+// ── SORT ──────────────────────────────────────────────────────────────────────
+function sortBy(col) {
+  if (sortCol === col) sortDir = sortDir==='asc'?'desc':'asc';
+  else { sortCol=col; sortDir='asc'; }
+  document.querySelectorAll('th.sortable').forEach(th => {
+    th.classList.remove('sa','sd');
+    if (th.getAttribute('onclick') === `sortBy('${col}')`) th.classList.add(sortDir==='asc'?'sa':'sd');
+  });
+  curPage=1; applyFilters();
+}
+
+// ── KPIS ──────────────────────────────────────────────────────────────────────
+function updateKpis() {
+  const n = DB.length;
+  const cnt = s => DB.filter(x=>x.status===s).length;
+  const transit=cnt('transit'), delivered=cnt('delivered'), delayed=cnt('delayed');
+  const pending=cnt('pending')+cnt('customs');
+  s('k-transit', transit); sb('k-transit-b', transit/n*100);
+  s('k-delivered', delivered); sb('k-delivered-b', delivered/n*100);
+  s('k-pending', pending); sb('k-pending-b', pending/n*100);
+  s('k-delayed', delayed); sb('k-delayed-b', delayed/n*100);
+  document.getElementById('sidebarBadge').textContent = DB.filter(x=>x.status!=='delivered').length;
+}
+function s(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+function sb(id,pct){const e=document.getElementById(id);if(e)e.style.width=pct+'%';}
+
+// ── TABLE ─────────────────────────────────────────────────────────────────────
+function renderTable() {
+  const start = (curPage-1)*PER;
+  const page = filtered.slice(start, start+PER);
+  const tbody = document.getElementById('tbody');
+  document.getElementById('emptyState').style.display = filtered.length===0?'flex':'none';
+
+  tbody.innerHTML = page.map(s => `
+    <tr onclick="openDetail('${s.id}')" class="${sel.has(s.id)?'row-sel':''}">
+      <td style="padding-left:16px" onclick="event.stopPropagation()">
+        <input type="checkbox" ${sel.has(s.id)?'checked':''} onchange="toggleSel('${s.id}',this)">
+      </td>
+      <td class="td-mono">${s.id}</td>
+      <td>${s.origin}<span style="color:var(--text-3);font-size:11.5px"> · ${s.originCountry}</span></td>
+      <td>${s.destination}<span style="color:var(--text-3);font-size:11.5px"> · ${s.destCountry}</span></td>
+      <td>${s.customer}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${s.weight.toLocaleString()} kg</td>
+      <td><span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text-2)">${modeIcon(s.mode)} ${s.mode}</span></td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text-2)">${fmtDate(s.eta)}</td>
+      <td><span class="badge ${s.status}">${statusLabel(s.status)}</span></td>
+      <td onclick="event.stopPropagation()" style="position:relative;padding:0 8px">
+        <button class="icon-btn" style="width:28px;height:28px" onclick="toggleMenu('${s.id}',event)">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="7" cy="2.5" r=".6" fill="currentColor"/><circle cx="7" cy="7" r=".6" fill="currentColor"/><circle cx="7" cy="11.5" r=".6" fill="currentColor"/></svg>
+        </button>
+        <div class="row-menu" id="menu-${s.id}">
+          <div class="row-menu-item" onclick="openDetail('${s.id}');closeMenus()">View Details</div>
+          <div class="row-menu-item" onclick="openEditById('${s.id}');closeMenus()">Edit</div>
+          <div class="row-menu-item green" onclick="quickStatus('${s.id}','delivered');closeMenus()">Mark Delivered</div>
+          <div class="row-menu-divider"></div>
+          <div class="row-menu-item red" onclick="confirmDel('${s.id}');closeMenus()">Delete</div>
+        </div>
+      </td>
+    </tr>`).join('');
+  updateBulkBar();
+}
+
+function toggleMenu(id, e) {
+  e.stopPropagation();
+  const m = document.getElementById('menu-'+id);
+  const wasOpen = m.classList.contains('open');
+  closeMenus();
+  if (!wasOpen) m.classList.add('open');
+}
+function closeMenus() { document.querySelectorAll('.row-menu.open').forEach(m=>m.classList.remove('open')); }
+document.addEventListener('click', closeMenus);
+
+// ── PAGINATION ────────────────────────────────────────────────────────────────
+function renderPagination() {
+  const total = filtered.length;
+  const pages = Math.max(1, Math.ceil(total/PER));
+  const s = Math.min((curPage-1)*PER+1, total);
+  const e = Math.min(curPage*PER, total);
+  document.getElementById('pageInfo').textContent = total===0?'No results':`Showing ${s}–${e} of ${total}`;
+  document.getElementById('btnPrev').disabled = curPage<=1;
+  document.getElementById('btnNext').disabled = curPage>=pages;
+  const nums = document.getElementById('pageNums');
+  nums.innerHTML = '';
+  pageRange(curPage, pages).forEach(p => {
+    if (p==='…') { const sp=document.createElement('span'); sp.style.cssText='display:grid;place-items:center;width:30px;height:30px;font-size:12px;color:var(--text-3)'; sp.textContent='…'; nums.appendChild(sp); }
+    else { const btn=document.createElement('button'); btn.className='page-btn'+(p===curPage?' active':''); btn.textContent=p; btn.onclick=()=>goPage(p); nums.appendChild(btn); }
+  });
+}
+function pageRange(cur, tot) {
+  if (tot<=7) return Array.from({length:tot},(_,i)=>i+1);
+  if (cur<=4) return [1,2,3,4,5,'…',tot];
+  if (cur>=tot-3) return [1,'…',tot-4,tot-3,tot-2,tot-1,tot];
+  return [1,'…',cur-1,cur,cur+1,'…',tot];
+}
+function goPage(p) { curPage=Math.max(1,Math.min(Math.ceil(filtered.length/PER),p)); renderTable(); renderPagination(); }
+
+// ── SELECTION ─────────────────────────────────────────────────────────────────
+function toggleSel(id, cb) { if(cb.checked)sel.add(id);else sel.delete(id); updateBulkBar(); renderTable(); }
+function toggleAll(cb) {
+  const s=(curPage-1)*PER; filtered.slice(s,s+PER).forEach(x=>cb.checked?sel.add(x.id):sel.delete(x.id));
+  updateBulkBar(); renderTable();
+}
+function updateBulkBar() {
+  const bar=document.getElementById('bulkBar');
+  if (sel.size>0){ bar.classList.add('show'); document.getElementById('bulkLabel').textContent=`${sel.size} selected`; }
+  else bar.classList.remove('show');
+}
+function clearSel() { sel.clear(); updateBulkBar(); renderTable(); }
+function bulkMarkDelivered() { sel.forEach(id=>{const x=DB.find(s=>s.id===id);if(x)x.status='delivered';}); const n=sel.size; sel.clear(); applyFilters(); toast(`${n} shipment${n>1?'s':''} marked delivered`,'success'); }
+function bulkDelete() {
+  const n=sel.size;
+  openConfirm(`Delete ${n} shipment${n>1?'s':''}?`,`Permanently remove ${n} shipment${n>1?'s':''}?`,()=>{
+    DB=DB.filter(s=>!sel.has(s.id)); sel.clear(); applyFilters(); toast(`${n} deleted`,'info');
+  });
+}
+
+// ── DETAIL ────────────────────────────────────────────────────────────────────
+function openDetail(id) {
+  currentDetailId = id;
+  const s = DB.find(x=>x.id===id); if(!s) return;
+  document.getElementById('dpId').textContent = s.id;
+  document.getElementById('dpBadge').innerHTML = `<span class="badge ${s.status}">${statusLabel(s.status)}</span>`;
+  document.getElementById('dpBody').innerHTML = renderDetailBody(s);
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('detailPanel').classList.add('open');
+}
+function closeDetail() {
+  document.getElementById('overlay').classList.remove('open');
+  document.getElementById('detailPanel').classList.remove('open');
+  currentDetailId = null;
+}
+function renderDetailBody(s) {
+  const prog = {transit:52,pending:8,customs:78,delayed:35,delivered:100}[s.status]||50;
+  const tl = [
+    {l:'Order Created',m:`${fmtDate(s.created)}`,state:'done'},
+    {l:'Pickup Confirmed',m:`Cargo collected · ${s.originCountry}`,state:s.status==='pending'?'pend':'done'},
+    {l:'In Transit',m:`${s.origin} → ${s.destination} via ${s.mode}`,state:['transit','customs','delayed','delivered'].includes(s.status)?'done':'pend',cur:s.status==='transit'},
+    {l:'Customs Clearance',m:'Documentation verification',state:s.status==='delivered'?'done':'pend',cur:s.status==='customs'},
+    {l:'Out for Delivery',m:'Final mile logistics',state:s.status==='delivered'?'done':'pend'},
+    {l:'Delivered',m:s.status==='delivered'?`Confirmed ${fmtDate(s.eta)}`:`ETA ${fmtDate(s.eta)}`,state:s.status==='delivered'?'done':'pend'},
+  ];
+  const tlHtml = tl.map(t=>`
+    <div class="tl-item">
+      <div class="tl-dot ${t.cur?'cur':t.state}"></div>
+      <div class="tl-body"><div class="tl-label" style="color:${t.state==='done'||t.cur?'var(--text-1)':'var(--text-3)'}">${t.l}</div><div class="tl-meta">${t.m}</div></div>
+    </div>`).join('');
+  return `
+    <div class="dp-section">
+      <div class="dp-section-title">Route</div>
+      <div style="display:flex;align-items:center;gap:8px;padding:14px;background:var(--bg-3);border-radius:8px;border:1px solid var(--border)">
+        <div style="flex:1;text-align:center">
+          <div style="font-size:11px;color:var(--text-3);margin-bottom:2px">Origin</div>
+          <div style="font-size:14px;font-weight:600">${s.origin}</div>
+          <div style="font-size:11.5px;color:var(--text-3)">${s.originCountry}</div>
+        </div>
+        <div style="flex:2;padding:0 8px">
+          <div style="position:relative;height:2px;background:var(--border-strong);border-radius:1px">
+            <div style="position:absolute;left:0;top:0;height:100%;width:${prog}%;background:var(--blue);border-radius:1px;transition:width .6s ease"></div>
+            <div style="position:absolute;top:50%;left:${prog}%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:var(--blue);border:2px solid var(--bg-3)"></div>
+          </div>
+          <div style="text-align:center;margin-top:8px"><span style="background:var(--bg-2);border:1px solid var(--border);padding:3px 8px;border-radius:20px;font-size:11px;color:var(--text-2)">${modeIcon(s.mode)} ${s.mode}</span></div>
+        </div>
+        <div style="flex:1;text-align:center">
+          <div style="font-size:11px;color:var(--text-3);margin-bottom:2px">Destination</div>
+          <div style="font-size:14px;font-weight:600">${s.destination}</div>
+          <div style="font-size:11.5px;color:var(--text-3)">${s.destCountry}</div>
+        </div>
+      </div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-title">Details</div>
+      <div class="dp-grid">
+        <div><div class="dp-field-label">Customer</div><div class="dp-field-value">${s.customer}</div></div>
+        <div><div class="dp-field-label">Container / AWB</div><div class="dp-field-value mono">${s.container||'—'}</div></div>
+        <div><div class="dp-field-label">Weight</div><div class="dp-field-value">${s.weight.toLocaleString()} kg</div></div>
+        <div><div class="dp-field-label">Volume</div><div class="dp-field-value">${s.volume||'—'} m³</div></div>
+        <div><div class="dp-field-label">Freight Cost</div><div class="dp-field-value">${s.cost?'$'+s.cost.toLocaleString():'—'}</div></div>
+        <div><div class="dp-field-label">ETA</div><div class="dp-field-value">${fmtDate(s.eta)}</div></div>
+        <div><div class="dp-field-label">Created</div><div class="dp-field-value">${fmtDate(s.created)}</div></div>
+        <div><div class="dp-field-label">Mode</div><div class="dp-field-value">${s.mode}</div></div>
+      </div>
+      ${s.notes?`<div style="margin-top:12px;padding:10px 12px;background:var(--bg-3);border-radius:7px;border:1px solid var(--border);font-size:12.5px;color:var(--text-2);line-height:1.6">${s.notes}</div>`:''}
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-title">Tracking Timeline</div>
+      <div class="tl">${tlHtml}</div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-title">Update Status</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${['transit','pending','customs','delayed','delivered'].map(st=>`
+          <button class="btn ${s.status===st?'active-filter':''}" style="font-size:12px;padding:5px 12px" onclick="quickStatus('${s.id}','${st}');openDetail('${s.id}')">${statusLabel(st)}</button>
+        `).join('')}
+      </div>
+    </div>`;
+}
+function quickStatus(id, st) {
+  const x=DB.find(s=>s.id===id); if(!x) return;
+  x.status=st; applyFilters(); toast(`${id} → ${statusLabel(st)}`,'success');
+}
+
+// ── CREATE / EDIT ─────────────────────────────────────────────────────────────
+function openCreateModal() {
+  editId=null;
+  document.getElementById('modalTitle').textContent='New Shipment';
+  document.getElementById('saveBtn').textContent='Create Shipment';
+  ['fc','fo','fd','fw','fv','fco','fct','fn'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['fm','foc','fdc'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('fs').value='transit';
+  document.getElementById('fe').value='';
+  document.getElementById('shipModal').classList.add('open');
+}
+function openEditById(id) {
+  const s=DB.find(x=>x.id===id); if(!s) return;
+  editId=id;
+  document.getElementById('modalTitle').textContent=`Edit ${s.id}`;
+  document.getElementById('saveBtn').textContent='Save Changes';
+  document.getElementById('fc').value=s.customer;
+  document.getElementById('fm').value=s.mode;
+  document.getElementById('fo').value=s.origin;
+  document.getElementById('foc').value=s.originCountry;
+  document.getElementById('fd').value=s.destination;
+  document.getElementById('fdc').value=s.destCountry;
+  document.getElementById('fw').value=s.weight;
+  document.getElementById('fv').value=s.volume||'';
+  document.getElementById('fs').value=s.status;
+  document.getElementById('fe').value=s.eta;
+  document.getElementById('fco').value=s.cost||'';
+  document.getElementById('fct').value=s.container||'';
+  document.getElementById('fn').value=s.notes||'';
+  document.getElementById('shipModal').classList.add('open');
+}
+function closeModal() { document.getElementById('shipModal').classList.remove('open'); }
+
+function saveShipment() {
+  const g=id=>document.getElementById(id)?.value?.trim();
+  const customer=g('fc'),origin=g('fo'),destination=g('fd'),mode=g('fm'),eta=g('fe');
+  const weight=parseFloat(g('fw'));
+  if (!customer||!origin||!destination||!mode||!eta||!weight){ toast('Fill in all required fields','error'); return; }
+  if (editId) {
+    const s=DB.find(x=>x.id===editId);
+    Object.assign(s,{customer,origin,originCountry:g('foc'),destination,destCountry:g('fdc'),weight,volume:parseFloat(g('fv'))||null,mode,status:g('fs'),eta,cost:parseFloat(g('fco'))||null,container:g('fct'),notes:g('fn')});
+    toast(`${editId} updated`,'success');
+  } else {
+    const id=genId(origin);
+    DB.unshift({id,customer,origin,originCountry:g('foc'),destination,destCountry:g('fdc'),weight,volume:parseFloat(g('fv'))||null,mode,status:g('fs')||'transit',eta,cost:parseFloat(g('fco'))||null,container:g('fct'),notes:g('fn'),created:new Date().toISOString().split('T')[0]});
+    toast(`${id} created`,'success');
+  }
+  closeModal(); applyFilters();
+}
+function genId(origin) {
+  return (origin||'SHP').replace(/[^a-z]/gi,'').slice(0,3).toUpperCase()+'-'+Math.floor(Math.random()*90000+10000);
+}
+
+// ── DELETE ────────────────────────────────────────────────────────────────────
+function confirmDel(id) {
+  openConfirm('Delete Shipment?',`Permanently remove ${id}? This cannot be undone.`,()=>{
+    DB=DB.filter(s=>s.id!==id); closeDetail(); applyFilters(); toast(`${id} deleted`,'info');
+  });
+}
+let _confirmCb=null;
+function openConfirm(title,msg,cb) {
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmMsg').textContent=msg;
+  _confirmCb=cb;
+  document.getElementById('confirmOk').onclick=()=>{_confirmCb?.();closeConfirm();};
+  document.getElementById('confirmModal').classList.add('open');
+}
+function closeConfirm() { document.getElementById('confirmModal').classList.remove('open'); }
+
+// ── EXPORT ────────────────────────────────────────────────────────────────────
+function exportCSV() {
+  const cols=['id','customer','origin','originCountry','destination','destCountry','weight','mode','eta','status','cost','container'];
+  const rows=[cols.join(','),...filtered.map(s=>cols.map(c=>`"${s[c]??''}"`).join(','))];
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([rows.join('\n')],{type:'text/csv'}));
+  a.download=`shipments-${new Date().toISOString().split('T')[0]}.csv`; a.click();
+  toast('Exported to CSV','success');
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function toast(msg, type='info') {
+  const c=document.getElementById('toastWrap');
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;
+  const icon={success:'<path d="M2 8l4 4 8-8"/>',error:'<circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 10.5v.5"/>',info:'<circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 10.5v.5"/>'}[type];
+  const col={success:'var(--green)',error:'var(--red)',info:'var(--blue)'}[type];
+  el.innerHTML=`<svg style="width:15px;height:15px;flex-shrink:0;color:${col}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">${icon}</svg>${msg}`;
+  c.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transform='translateY(6px)';setTimeout(()=>el.remove(),300);},3000);
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function statusLabel(s) { return {transit:'In Transit',delivered:'Delivered',pending:'Pending',customs:'Customs',delayed:'Delayed'}[s]||s; }
+function modeIcon(m) {
+  const I={
+    Sea:`<svg style="width:13px;height:13px;flex-shrink:0" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 11l7-8 7 8"/><path d="M1 14c2 2 4 2 6 0s4-2 6 0l2-3H-1l2 3z"/></svg>`,
+    Air:`<svg style="width:13px;height:13px;flex-shrink:0" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 9l2-5 4 3 6-4-3 6-5-1-4 4V9z"/></svg>`,
+    Road:`<svg style="width:13px;height:13px;flex-shrink:0" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="1" y="5" width="12" height="9" rx="1.5"/><path d="M13 8l3 2v4h-3V8z"/><circle cx="4.5" cy="14" r="1.5"/><circle cx="10.5" cy="14" r="1.5"/><circle cx="15" cy="14" r="1.5"/></svg>`,
+    Rail:`<svg style="width:13px;height:13px;flex-shrink:0" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="2" width="12" height="12" rx="2"/><path d="M3 8h12M7 14l-2 2M11 14l2 2"/><circle cx="6" cy="5.5" r="1"/><circle cx="12" cy="5.5" r="1"/></svg>`,
+  };
+  return I[m]||'';
+}
+
+// ── CHART ─────────────────────────────────────────────────────────────────────
+function buildChart() {
+  const chart=document.getElementById('barChart'); if(!chart) return;
+  const weeks=['W16','W17','W18','W19','W20','W21','W22','W23'];
+  const vals=[68,82,74,91,87,95,78,103];
+  const maxV=Math.max(...vals);
+  weeks.forEach((w,i)=>{
+    const pct=(vals[i]/maxV)*100;
+    const col=document.createElement('div'); col.className='bar-col';
+    col.innerHTML=`<div class="bar-fill${i===weeks.length-1?' highlight':''}" style="height:0%;transition:height .6s cubic-bezier(0.4,0,0.2,1) ${i*.05}s" data-h="${pct}"></div><span class="bar-label">${w}</span>`;
+    chart.appendChild(col);
+  });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    document.querySelectorAll('.bar-fill').forEach(b=>b.style.height=b.dataset.h+'%');
+  }));
+}
+</script>
+</body>
+</html>
