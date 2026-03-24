@@ -122,6 +122,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text-1);font-fam
 .stat-card:hover{border-color:var(--border-strong);}
 .stat-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
 .stat-icon{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;}
+.stat-icon svg{width:18px;height:18px;}
 .stat-change{font-size:12px;font-weight:500;padding:3px 8px;border-radius:20px;}
 .stat-change.up{background:var(--green-dim);color:var(--green);} .stat-change.down{background:var(--red-dim);color:var(--red);}
 .stat-value{font-size:28px;font-weight:600;letter-spacing:-.03em;line-height:1;margin-bottom:4px;}
@@ -129,13 +130,32 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text-1);font-fam
 .progress-fill{height:100%;border-radius:2px;background:var(--blue);}
 .card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
 .card-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);} .card-title{font-size:14px;font-weight:600;}
+.card-subtitle{font-size:12px;color:var(--text-3);margin-top:1px;}
 .two-col{display:grid;grid-template-columns:1fr 340px;gap:14px;} .bar-chart{display:flex;align-items:flex-end;gap:6px;height:100px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.chart-wrap{padding:16px 20px 8px;}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.bar-fill{width:100%;border-radius:4px 4px 0 0;background:var(--blue-dim);border-top:2px solid var(--blue);min-height:2px;}
+.bar-fill.highlight{background:rgba(59,130,246,0.25);}
 .route-item{display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--border);transition:background var(--transition);cursor:pointer;} .route-item:last-child{border-bottom:none;}
 .route-item:hover{background:var(--bg-3);}
+.route-list{display:flex;flex-direction:column;}
+.route-info{flex:1;min-width:0;}
 .route-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;} .route-name{font-size:13px;font-weight:500;} .route-meta{font-size:11.5px;color:var(--text-3);} .route-count{font-family:'DM Mono',monospace;font-size:12px;color:var(--text-2);font-weight:500;}
 .chart-legend{display:flex;gap:16px;padding:10px 20px 16px;}
 .legend-item{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-3);}
 .legend-dot{width:8px;height:8px;border-radius:2px;}
+.mini-stat-row{display:flex;flex-direction:column;}
+.mini-stat{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);}
+.mini-stat:last-child{border-bottom:none;}
+.mini-stat-icon{width:32px;height:32px;border-radius:7px;display:grid;place-items:center;flex-shrink:0;}
+.mini-stat-icon svg{width:15px;height:15px;}
+.mini-stat-body{flex:1;}
+.mini-stat-label{font-size:11.5px;color:var(--text-3);}
+.mini-stat-value{font-size:14px;font-weight:600;}
+.mini-stat-bar-wrap{width:60px;}
+.mini-stat-bar{height:4px;background:var(--bg-4);border-radius:2px;overflow:hidden;}
+.mini-stat-bar-fill{height:100%;border-radius:2px;background:var(--blue);}
 .filter-tabs{display:flex;gap:4px;background:var(--bg-3);border:1px solid var(--border);border-radius:8px;padding:3px;}
 .filter-tab{padding:5px 12px;border-radius:6px;font-size:12.5px;font-weight:500;cursor:pointer;color:var(--text-2);background:transparent;border:none;}
 .filter-tab.active{background:var(--bg-2);color:var(--text-1);}
@@ -166,6 +186,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text-1);font-fam
 .toast-wrap{position:fixed;bottom:24px;right:24px;z-index:200;display:flex;flex-direction:column;gap:8px;} .toast{background:var(--bg-3);border:1px solid var(--border-strong);border-radius:8px;padding:11px 15px;font-size:13px;color:var(--text-1);display:flex;align-items:center;gap:10px;min-width:240px;} .toast.success{border-left:3px solid var(--green);} .toast.error{border-left:3px solid var(--red);} .toast.info{border-left:3px solid var(--blue);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
 @media (max-width:1200px){.stat-grid{grid-template-columns:repeat(2,1fr)}.two-col{grid-template-columns:1fr}}
+@media (max-width:1100px){.three-col{grid-template-columns:1fr 1fr;}}
 @media (max-width:760px){.sidebar{display:none}.topbar{padding:0 12px}.content{padding:12px}.stat-grid{grid-template-columns:1fr}}
 `;
 
@@ -1302,39 +1323,189 @@ export default function Dashboard() {
                     >
                         <div className="content">
                             <div className="stat-grid">
-                                <StatCard
-                                    label="Active Shipments"
-                                    value="1,284"
-                                    change="↑ 8.4%"
-                                    progress={72}
-                                    kind="blue"
-                                    icon="truck"
-                                />
-                                <StatCard
-                                    label="On-time Delivery"
-                                    value="94.7%"
-                                    change="↑ 2.1%"
-                                    progress={95}
-                                    kind="green"
-                                    icon="check"
-                                />
-                                <StatCard
-                                    label="Pending Clearance"
-                                    value="38"
-                                    change="↓ 1.2%"
-                                    progress={38}
-                                    kind="amber"
-                                    icon="clock"
-                                    down
-                                />
-                                <StatCard
-                                    label="Revenue This Month"
-                                    value="$2.4M"
-                                    change="↑ 12.8%"
-                                    progress={60}
-                                    kind="purple"
-                                    icon="calendar"
-                                />
+                                <div className="stat-card">
+                                    <div className="stat-top">
+                                        <div
+                                            className="stat-icon"
+                                            style={{
+                                                background: "var(--blue-dim)",
+                                                color: "var(--blue)",
+                                            }}
+                                        >
+                                            <svg
+                                                viewBox="0 0 18 18"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.7"
+                                                strokeLinecap="round"
+                                            >
+                                                <rect
+                                                    x="1"
+                                                    y="5"
+                                                    width="12"
+                                                    height="9"
+                                                    rx="1.5"
+                                                />
+                                                <path d="M13 8l3 2v4h-3V8z" />
+                                                <circle
+                                                    cx="4.5"
+                                                    cy="14"
+                                                    r="1.5"
+                                                />
+                                                <circle
+                                                    cx="10.5"
+                                                    cy="14"
+                                                    r="1.5"
+                                                />
+                                                <circle
+                                                    cx="15"
+                                                    cy="14"
+                                                    r="1.5"
+                                                />
+                                            </svg>
+                                        </div>
+                                        <span className="stat-change up">
+                                            ↑ 8.4%
+                                        </span>
+                                    </div>
+                                    <div className="stat-value">1,284</div>
+                                    <div className="stat-label">
+                                        Active Shipments
+                                    </div>
+                                    <div className="progress-bar">
+                                        <div
+                                            className="progress-fill"
+                                            style={{ width: "72%" }}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="stat-card">
+                                    <div className="stat-top">
+                                        <div
+                                            className="stat-icon"
+                                            style={{
+                                                background: "var(--green-dim)",
+                                                color: "var(--green)",
+                                            }}
+                                        >
+                                            <svg
+                                                viewBox="0 0 18 18"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.7"
+                                                strokeLinecap="round"
+                                            >
+                                                <path d="M2 9l5 5 9-9" />
+                                            </svg>
+                                        </div>
+                                        <span className="stat-change up">
+                                            ↑ 2.1%
+                                        </span>
+                                    </div>
+                                    <div
+                                        className="stat-value"
+                                        style={{ color: "var(--green)" }}
+                                    >
+                                        94.7%
+                                    </div>
+                                    <div className="stat-label">
+                                        On-time Delivery
+                                    </div>
+                                    <div className="progress-bar">
+                                        <div
+                                            className="progress-fill"
+                                            style={{
+                                                width: "94.7%",
+                                                background: "var(--green)",
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="stat-card">
+                                    <div className="stat-top">
+                                        <div
+                                            className="stat-icon"
+                                            style={{
+                                                background: "var(--amber-dim)",
+                                                color: "var(--amber)",
+                                            }}
+                                        >
+                                            <svg
+                                                viewBox="0 0 18 18"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.7"
+                                                strokeLinecap="round"
+                                            >
+                                                <circle cx="9" cy="9" r="7" />
+                                                <path d="M9 5v4l2.5 2.5" />
+                                            </svg>
+                                        </div>
+                                        <span className="stat-change down">
+                                            ↓ 1.2%
+                                        </span>
+                                    </div>
+                                    <div className="stat-value">38</div>
+                                    <div className="stat-label">
+                                        Pending Clearance
+                                    </div>
+                                    <div className="progress-bar">
+                                        <div
+                                            className="progress-fill"
+                                            style={{
+                                                width: "38%",
+                                                background: "var(--amber)",
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="stat-card">
+                                    <div className="stat-top">
+                                        <div
+                                            className="stat-icon"
+                                            style={{
+                                                background: "var(--purple-dim)",
+                                                color: "var(--purple)",
+                                            }}
+                                        >
+                                            <svg
+                                                viewBox="0 0 18 18"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.7"
+                                                strokeLinecap="round"
+                                            >
+                                                <rect
+                                                    x="2"
+                                                    y="4"
+                                                    width="14"
+                                                    height="11"
+                                                    rx="1.5"
+                                                />
+                                                <path d="M2 8h14M6 2v4M12 2v4" />
+                                            </svg>
+                                        </div>
+                                        <span className="stat-change up">
+                                            ↑ 12.8%
+                                        </span>
+                                    </div>
+                                    <div className="stat-value">$2.4M</div>
+                                    <div className="stat-label">
+                                        Revenue This Month
+                                    </div>
+                                    <div className="progress-bar">
+                                        <div
+                                            className="progress-fill"
+                                            style={{
+                                                width: "60%",
+                                                background: "var(--purple)",
+                                            }}
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="two-col">
@@ -1344,53 +1515,52 @@ export default function Dashboard() {
                                             <div className="card-title">
                                                 Cargo Volume
                                             </div>
-                                            <div
-                                                style={{
-                                                    fontSize: 12,
-                                                    color: "var(--text-3)",
-                                                    marginTop: 1,
-                                                }}
-                                            >
-                                                Shipments dispatched per week
+                                            <div className="card-subtitle">
+                                                Shipments per week
                                             </div>
                                         </div>
+                                        <div
+                                            style={{ display: "flex", gap: 6 }}
+                                        >
+                                            <button
+                                                className="btn"
+                                                style={{
+                                                    padding: "5px 10px",
+                                                    fontSize: 12,
+                                                }}
+                                            >
+                                                Weekly
+                                            </button>
+                                            <button
+                                                className="btn"
+                                                style={{
+                                                    padding: "5px 10px",
+                                                    fontSize: 12,
+                                                    background:
+                                                        "var(--blue-dim)",
+                                                    borderColor:
+                                                        "var(--blue-border)",
+                                                    color: "var(--blue)",
+                                                }}
+                                            >
+                                                Monthly
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div style={{ padding: "16px 20px 8px" }}>
+                                    <div className="chart-wrap">
                                         <div className="bar-chart">
                                             {CHART.map((v, i) => (
                                                 <div
                                                     key={i}
-                                                    style={{
-                                                        flex: 1,
-                                                        display: "flex",
-                                                        flexDirection: "column",
-                                                        alignItems: "center",
-                                                        gap: 6,
-                                                    }}
+                                                    className="bar-col"
                                                 >
                                                     <div
+                                                        className={`bar-fill ${i === 4 ? "highlight" : ""}`}
                                                         style={{
-                                                            width: "100%",
-                                                            borderRadius:
-                                                                "4px 4px 0 0",
-                                                            background:
-                                                                i === 4
-                                                                    ? "rgba(59,130,246,0.25)"
-                                                                    : "var(--blue-dim)",
-                                                            borderTop:
-                                                                "2px solid var(--blue)",
-                                                            minHeight: 2,
                                                             height: v,
                                                         }}
                                                     />
-                                                    <div
-                                                        style={{
-                                                            fontSize: 10,
-                                                            color: "var(--text-3)",
-                                                            fontFamily:
-                                                                "DM Mono, monospace",
-                                                        }}
-                                                    >
+                                                    <div className="bar-label">
                                                         W{i + 1}
                                                     </div>
                                                 </div>
@@ -1420,51 +1590,580 @@ export default function Dashboard() {
                                 </div>
                                 <div className="card">
                                     <div className="card-header">
-                                        <div className="card-title">
-                                            Active Routes
+                                        <div>
+                                            <div className="card-title">
+                                                Active Routes
+                                            </div>
+                                            <div className="card-subtitle">
+                                                Live corridors
+                                            </div>
                                         </div>
                                         <span
                                             style={{
                                                 fontSize: 11.5,
                                                 color: "var(--blue)",
                                                 cursor: "pointer",
+                                                fontWeight: 500,
                                             }}
                                             onClick={() => setPage("shipments")}
                                         >
                                             View all →
                                         </span>
                                     </div>
-                                    <div>
-                                        {ROUTES.map((r, i) => (
+                                    <div className="route-list">
+                                        <div className="route-item">
                                             <div
-                                                key={r[0]}
-                                                className="route-item"
-                                            >
-                                                <div
-                                                    className="route-dot"
-                                                    style={{
-                                                        background: [
-                                                            "var(--green)",
-                                                            "var(--blue)",
-                                                            "var(--amber)",
-                                                            "var(--purple)",
-                                                            "var(--green)",
-                                                        ][i],
-                                                    }}
-                                                />
-                                                <div style={{ flex: 1 }}>
-                                                    <div className="route-name">
-                                                        {r[0]}
-                                                    </div>
-                                                    <div className="route-meta">
-                                                        {r[1]}
-                                                    </div>
+                                                className="route-dot"
+                                                style={{
+                                                    background: "var(--green)",
+                                                }}
+                                            />
+                                            <div className="route-info">
+                                                <div className="route-name">
+                                                    Shanghai → Rotterdam
                                                 </div>
-                                                <span className="route-count">
-                                                    {r[2]}
-                                                </span>
+                                                <div className="route-meta">
+                                                    Sea freight · 28 days avg
+                                                </div>
                                             </div>
-                                        ))}
+                                            <span className="route-count">
+                                                142
+                                            </span>
+                                        </div>
+                                        <div className="route-item">
+                                            <div
+                                                className="route-dot"
+                                                style={{
+                                                    background: "var(--blue)",
+                                                }}
+                                            />
+                                            <div className="route-info">
+                                                <div className="route-name">
+                                                    Dubai → New York
+                                                </div>
+                                                <div className="route-meta">
+                                                    Air + sea · 7 days avg
+                                                </div>
+                                            </div>
+                                            <span className="route-count">
+                                                89
+                                            </span>
+                                        </div>
+                                        <div className="route-item">
+                                            <div
+                                                className="route-dot"
+                                                style={{
+                                                    background: "var(--amber)",
+                                                }}
+                                            />
+                                            <div className="route-info">
+                                                <div className="route-name">
+                                                    Singapore → Los Angeles
+                                                </div>
+                                                <div className="route-meta">
+                                                    Sea freight · 22 days avg
+                                                </div>
+                                            </div>
+                                            <span className="route-count">
+                                                61
+                                            </span>
+                                        </div>
+                                        <div className="route-item">
+                                            <div
+                                                className="route-dot"
+                                                style={{
+                                                    background: "var(--purple)",
+                                                }}
+                                            />
+                                            <div className="route-info">
+                                                <div className="route-name">
+                                                    Frankfurt → Chicago
+                                                </div>
+                                                <div className="route-meta">
+                                                    Air freight · 2 days avg
+                                                </div>
+                                            </div>
+                                            <span className="route-count">
+                                                47
+                                            </span>
+                                        </div>
+                                        <div className="route-item">
+                                            <div
+                                                className="route-dot"
+                                                style={{
+                                                    background: "var(--green)",
+                                                }}
+                                            />
+                                            <div className="route-info">
+                                                <div className="route-name">
+                                                    Dar es Salaam → Mumbai
+                                                </div>
+                                                <div className="route-meta">
+                                                    Sea freight · 18 days avg
+                                                </div>
+                                            </div>
+                                            <span className="route-count">
+                                                33
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="three-col">
+                                <div className="card">
+                                    <div className="card-header">
+                                        <div className="card-title">
+                                            Fleet Status
+                                        </div>
+                                    </div>
+                                    <div className="mini-stat-row">
+                                        <div className="mini-stat">
+                                            <div
+                                                className="mini-stat-icon"
+                                                style={{
+                                                    background:
+                                                        "var(--green-dim)",
+                                                    color: "var(--green)",
+                                                }}
+                                            >
+                                                <svg
+                                                    viewBox="0 0 18 18"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.7"
+                                                    strokeLinecap="round"
+                                                >
+                                                    <rect
+                                                        x="1"
+                                                        y="5"
+                                                        width="12"
+                                                        height="9"
+                                                        rx="1.5"
+                                                    />
+                                                    <path d="M13 8l3 2v4h-3V8z" />
+                                                    <circle
+                                                        cx="4.5"
+                                                        cy="14"
+                                                        r="1.5"
+                                                    />
+                                                    <circle
+                                                        cx="10.5"
+                                                        cy="14"
+                                                        r="1.5"
+                                                    />
+                                                    <circle
+                                                        cx="15"
+                                                        cy="14"
+                                                        r="1.5"
+                                                    />
+                                                </svg>
+                                            </div>
+                                            <div className="mini-stat-body">
+                                                <div className="mini-stat-label">
+                                                    Trucks En Route
+                                                </div>
+                                                <div className="mini-stat-value">
+                                                    48 / 64
+                                                </div>
+                                            </div>
+                                            <div className="mini-stat-bar-wrap">
+                                                <div className="mini-stat-bar">
+                                                    <div
+                                                        className="mini-stat-bar-fill"
+                                                        style={{
+                                                            width: "75%",
+                                                            background:
+                                                                "var(--green)",
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="mini-stat">
+                                            <div
+                                                className="mini-stat-icon"
+                                                style={{
+                                                    background:
+                                                        "var(--blue-dim)",
+                                                    color: "var(--blue)",
+                                                }}
+                                            >
+                                                <svg
+                                                    viewBox="0 0 18 18"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.7"
+                                                    strokeLinecap="round"
+                                                >
+                                                    <path d="M9 2L2 6v10h14V6L9 2z" />
+                                                    <path d="M6 16V10h6v6" />
+                                                </svg>
+                                            </div>
+                                            <div className="mini-stat-body">
+                                                <div className="mini-stat-label">
+                                                    Container Ships
+                                                </div>
+                                                <div className="mini-stat-value">
+                                                    7 / 12
+                                                </div>
+                                            </div>
+                                            <div className="mini-stat-bar-wrap">
+                                                <div className="mini-stat-bar">
+                                                    <div
+                                                        className="mini-stat-bar-fill"
+                                                        style={{ width: "58%" }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="mini-stat">
+                                            <div
+                                                className="mini-stat-icon"
+                                                style={{
+                                                    background:
+                                                        "var(--amber-dim)",
+                                                    color: "var(--amber)",
+                                                }}
+                                            >
+                                                <svg
+                                                    viewBox="0 0 18 18"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.7"
+                                                    strokeLinecap="round"
+                                                >
+                                                    <path d="M9 2l1.5 4.5H15l-3.75 2.75 1.5 4.5L9 11 5.25 13.75l1.5-4.5L3 6.5h4.5L9 2z" />
+                                                </svg>
+                                            </div>
+                                            <div className="mini-stat-body">
+                                                <div className="mini-stat-label">
+                                                    Aircraft Cargo
+                                                </div>
+                                                <div className="mini-stat-value">
+                                                    3 / 5
+                                                </div>
+                                            </div>
+                                            <div className="mini-stat-bar-wrap">
+                                                <div className="mini-stat-bar">
+                                                    <div
+                                                        className="mini-stat-bar-fill"
+                                                        style={{
+                                                            width: "60%",
+                                                            background:
+                                                                "var(--amber)",
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="mini-stat">
+                                            <div
+                                                className="mini-stat-icon"
+                                                style={{
+                                                    background:
+                                                        "var(--red-dim)",
+                                                    color: "var(--red)",
+                                                }}
+                                            >
+                                                <svg
+                                                    viewBox="0 0 18 18"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.7"
+                                                    strokeLinecap="round"
+                                                >
+                                                    <circle
+                                                        cx="9"
+                                                        cy="9"
+                                                        r="7"
+                                                    />
+                                                    <path d="M9 5v4M9 12.5v.5" />
+                                                </svg>
+                                            </div>
+                                            <div className="mini-stat-body">
+                                                <div className="mini-stat-label">
+                                                    In Maintenance
+                                                </div>
+                                                <div className="mini-stat-value">
+                                                    6 vehicles
+                                                </div>
+                                            </div>
+                                            <div className="mini-stat-bar-wrap">
+                                                <div className="mini-stat-bar">
+                                                    <div
+                                                        className="mini-stat-bar-fill"
+                                                        style={{
+                                                            width: "12%",
+                                                            background:
+                                                                "var(--red)",
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="card">
+                                    <div className="card-header">
+                                        <div className="card-title">Alerts</div>
+                                        <span
+                                            className="badge delayed"
+                                            style={{ fontSize: 11 }}
+                                        >
+                                            3 critical
+                                        </span>
+                                    </div>
+                                    <div className="mini-stat-row">
+                                        <div
+                                            className="mini-stat"
+                                            style={{ alignItems: "flex-start" }}
+                                        >
+                                            <div
+                                                className="mini-stat-icon"
+                                                style={{
+                                                    background:
+                                                        "var(--red-dim)",
+                                                    color: "var(--red)",
+                                                    marginTop: 2,
+                                                }}
+                                            >
+                                                <svg
+                                                    viewBox="0 0 18 18"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.7"
+                                                    strokeLinecap="round"
+                                                >
+                                                    <path d="M9 2L1.5 15h15L9 2z" />
+                                                    <path d="M9 7v4M9 13.5v.5" />
+                                                </svg>
+                                            </div>
+                                            <div className="mini-stat-body">
+                                                <div
+                                                    className="mini-stat-value"
+                                                    style={{ fontSize: 13 }}
+                                                >
+                                                    Port Congestion
+                                                </div>
+                                                <div className="mini-stat-label">
+                                                    Rotterdam - 24h delay
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div
+                                            className="mini-stat"
+                                            style={{ alignItems: "flex-start" }}
+                                        >
+                                            <div
+                                                className="mini-stat-icon"
+                                                style={{
+                                                    background:
+                                                        "var(--amber-dim)",
+                                                    color: "var(--amber)",
+                                                    marginTop: 2,
+                                                }}
+                                            >
+                                                <svg
+                                                    viewBox="0 0 18 18"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.7"
+                                                    strokeLinecap="round"
+                                                >
+                                                    <circle
+                                                        cx="9"
+                                                        cy="9"
+                                                        r="7"
+                                                    />
+                                                    <path d="M9 5v4M9 12.5v.5" />
+                                                </svg>
+                                            </div>
+                                            <div className="mini-stat-body">
+                                                <div
+                                                    className="mini-stat-value"
+                                                    style={{ fontSize: 13 }}
+                                                >
+                                                    Customs Hold
+                                                </div>
+                                                <div className="mini-stat-label">
+                                                    SHG-0091 awaiting docs
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div
+                                            className="mini-stat"
+                                            style={{ alignItems: "flex-start" }}
+                                        >
+                                            <div
+                                                className="mini-stat-icon"
+                                                style={{
+                                                    background:
+                                                        "var(--red-dim)",
+                                                    color: "var(--red)",
+                                                    marginTop: 2,
+                                                }}
+                                            >
+                                                <svg
+                                                    viewBox="0 0 18 18"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.7"
+                                                    strokeLinecap="round"
+                                                >
+                                                    <path d="M9 2L1.5 15h15L9 2z" />
+                                                    <path d="M9 7v4M9 13.5v.5" />
+                                                </svg>
+                                            </div>
+                                            <div className="mini-stat-body">
+                                                <div
+                                                    className="mini-stat-value"
+                                                    style={{ fontSize: 13 }}
+                                                >
+                                                    Temp Exceedance
+                                                </div>
+                                                <div className="mini-stat-label">
+                                                    Cold chain SG-441 &gt;4C
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div
+                                            className="mini-stat"
+                                            style={{ alignItems: "flex-start" }}
+                                        >
+                                            <div
+                                                className="mini-stat-icon"
+                                                style={{
+                                                    background:
+                                                        "var(--blue-dim)",
+                                                    color: "var(--blue)",
+                                                    marginTop: 2,
+                                                }}
+                                            >
+                                                <svg
+                                                    viewBox="0 0 18 18"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.7"
+                                                    strokeLinecap="round"
+                                                >
+                                                    <circle
+                                                        cx="9"
+                                                        cy="9"
+                                                        r="7"
+                                                    />
+                                                    <path d="M9 6v3l2 2" />
+                                                </svg>
+                                            </div>
+                                            <div className="mini-stat-body">
+                                                <div
+                                                    className="mini-stat-value"
+                                                    style={{ fontSize: 13 }}
+                                                >
+                                                    Route Diversion
+                                                </div>
+                                                <div className="mini-stat-label">
+                                                    TK-210 rerouted - weather
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="card">
+                                    <div className="card-header">
+                                        <div className="card-title">
+                                            Warehouse Capacity
+                                        </div>
+                                    </div>
+                                    <div className="mini-stat-row">
+                                        <div className="mini-stat">
+                                            <div className="mini-stat-body">
+                                                <div className="mini-stat-label">
+                                                    Dubai Hub
+                                                </div>
+                                                <div className="mini-stat-value">
+                                                    87%
+                                                </div>
+                                                <div className="mini-stat-bar">
+                                                    <div
+                                                        className="mini-stat-bar-fill"
+                                                        style={{
+                                                            width: "87%",
+                                                            background:
+                                                                "var(--red)",
+                                                            height: 4,
+                                                            borderRadius: 2,
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="mini-stat">
+                                            <div className="mini-stat-body">
+                                                <div className="mini-stat-label">
+                                                    Singapore DHL
+                                                </div>
+                                                <div className="mini-stat-value">
+                                                    62%
+                                                </div>
+                                                <div className="mini-stat-bar">
+                                                    <div
+                                                        className="mini-stat-bar-fill"
+                                                        style={{
+                                                            width: "62%",
+                                                            height: 4,
+                                                            borderRadius: 2,
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="mini-stat">
+                                            <div className="mini-stat-body">
+                                                <div className="mini-stat-label">
+                                                    Rotterdam Port
+                                                </div>
+                                                <div className="mini-stat-value">
+                                                    45%
+                                                </div>
+                                                <div className="mini-stat-bar">
+                                                    <div
+                                                        className="mini-stat-bar-fill"
+                                                        style={{
+                                                            width: "45%",
+                                                            background:
+                                                                "var(--green)",
+                                                            height: 4,
+                                                            borderRadius: 2,
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="mini-stat">
+                                            <div className="mini-stat-body">
+                                                <div className="mini-stat-label">
+                                                    Chicago O'Hare
+                                                </div>
+                                                <div className="mini-stat-value">
+                                                    71%
+                                                </div>
+                                                <div className="mini-stat-bar">
+                                                    <div
+                                                        className="mini-stat-bar-fill"
+                                                        style={{
+                                                            width: "71%",
+                                                            background:
+                                                                "var(--amber)",
+                                                            height: 4,
+                                                            borderRadius: 2,
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
