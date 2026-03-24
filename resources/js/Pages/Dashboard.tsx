@@ -79,8 +79,9 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text-1);font-fam
 .logo-mark svg{width:16px;height:16px;}
 .logo-text{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;transition:opacity var(--transition);}
 .sidebar.collapsed .logo-text{opacity:0;pointer-events:none;}
-.toggle-btn{position:absolute;top:14px;right:-12px;width:24px;height:24px;background:var(--bg-3);border:1px solid var(--border-strong);border-radius:50%;cursor:pointer;display:grid;place-items:center;color:var(--text-3);z-index:20;transition:all var(--transition);}
-.sidebar.collapsed .toggle-btn{transform:rotate(180deg);}
+.toggle-btn{width:38px;height:30px;background:var(--bg-3);border:0;border-radius:6px;cursor:pointer;display:grid;place-items:center;color:#D1D5DB;transition:background var(--transition),color var(--transition);}
+.toggle-btn:hover{background:var(--bg-4);color:#F1F3F7;}
+.toggle-btn svg{width:18px;height:18px;}
 .sidebar-nav{flex:1;padding:12px 8px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;overflow-x:hidden;}
 .nav-section-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);padding:8px 8px 4px;white-space:nowrap;overflow:hidden;}
 .sidebar.collapsed .nav-section-label{opacity:0;}
@@ -1078,20 +1079,6 @@ export default function Dashboard() {
                         </div>
                         <span className="logo-text">CargoOS</span>
                     </div>
-                    <button
-                        className="toggle-btn"
-                        onClick={() => setSidebarCollapsed((p) => !p)}
-                    >
-                        <svg
-                            viewBox="0 0 12 12"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.8"
-                            strokeLinecap="round"
-                        >
-                            <path d="M7.5 2L3.5 6l4 4" />
-                        </svg>
-                    </button>
                     <nav className="sidebar-nav">
                         <div className="nav-section-label">Operations</div>
                         <button
@@ -1317,6 +1304,29 @@ export default function Dashboard() {
 
                 <div className="main">
                     <header className="topbar">
+                        <button
+                            className="toggle-btn"
+                            onClick={() => setSidebarCollapsed((p) => !p)}
+                            aria-label="Toggle sidebar"
+                        >
+                            <svg
+                                viewBox="0 0 18 18"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.7"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <rect
+                                    x="2"
+                                    y="3"
+                                    width="14"
+                                    height="12"
+                                    rx="1.8"
+                                />
+                                <path d="M8.2 3v12" />
+                            </svg>
+                        </button>
                         <span className="topbar-title">
                             {page === "dashboard" ? "Dashboard" : "Shipments"}
                         </span>
