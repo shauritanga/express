@@ -340,6 +340,84 @@ html, body { height: 100%; background: var(--bg); color: var(--text-1); font-fam
 /* RESPONSIVE */
 @media (max-width:1100px) { .stat-grid { grid-template-columns: repeat(2,1fr); } .two-col { grid-template-columns: 1fr; } .three-col { grid-template-columns: 1fr 1fr; } }
 @media (max-width:700px) { .stat-grid { grid-template-columns: 1fr 1fr; } .three-col { grid-template-columns: 1fr; } }
+
+/* ═══════════════════════════════════════════
+   BOOKINGS PAGE
+═══════════════════════════════════════════ */
+
+/* BOOKING STATUS BADGES */
+.badge.new      { background: rgba(59,130,246,0.15); color: var(--blue); }
+.badge.reviewing{ background: rgba(167,139,250,0.15); color: var(--purple); }
+.badge.approved { background: rgba(34,197,94,0.15); color: var(--green); }
+.badge.converted{ background: rgba(34,197,94,0.08); color: #16a34a; border:1px solid rgba(34,197,94,0.2); }
+.badge.rejected { background: var(--red-dim); color: var(--red); }
+
+/* GRID SCROLL */
+#bkGridScroll { background: var(--bg); }
+#bkGridScroll::-webkit-scrollbar { width:6px; }
+#bkGridScroll::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:3px; }
+
+/* BOOKING CARD (grid) */
+.bk-card { background:var(--bg-2); border:1px solid var(--border); border-radius:9px; padding:14px; cursor:pointer; transition:border-color var(--transition), box-shadow var(--transition); }
+.bk-card:hover { border-color:var(--border-strong); box-shadow:0 2px 12px rgba(0,0,0,0.2); }
+.bk-card.selected { border-color:var(--blue); box-shadow:0 0 0 2px var(--blue-dim); }
+.bk-card-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px; }
+.bk-card-id { font-family:'DM Mono',monospace; font-size:11px; color:var(--blue); font-weight:500; }
+.bk-card-time { font-size:11px; color:var(--text-3); }
+.bk-card-name { font-size:13px; font-weight:600; margin-bottom:3px; }
+.bk-card-route { font-size:12px; color:var(--text-2); display:flex; align-items:center; gap:4px; }
+.bk-card-footer { display:flex; align-items:center; justify-content:space-between; margin-top:10px; padding-top:10px; border-top:1px solid var(--border); }
+.bk-card-weight { font-size:11.5px; color:var(--text-3); }
+.bk-card-mode { display:flex; align-items:center; gap:4px; font-size:11.5px; color:var(--text-3); }
+.bk-urgency { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+
+/* BOOKING TABLE VIEW */
+.bk-table-wrap { flex:1; overflow:auto; }
+.bk-table-wrap::-webkit-scrollbar { width:6px; height:6px; }
+.bk-table-wrap::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:3px; }
+.bk-table { width:100%; border-collapse:collapse; min-width:860px; }
+.bk-table thead { position:sticky; top:0; z-index:2; }
+.bk-table thead th { background:var(--bg-2); text-align:left; font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-3); padding:10px 16px; border-bottom:1px solid var(--border); white-space:nowrap; }
+.bk-table tbody tr { border-bottom:1px solid var(--border); cursor:pointer; transition:background var(--transition); }
+.bk-table tbody tr:last-child { border-bottom:none; }
+.bk-table tbody tr:hover { background:var(--bg-3); }
+.bk-table tbody tr.bk-selected-row { background:var(--blue-dim); }
+.bk-table td { padding:11px 16px; font-size:13px; vertical-align:middle; }
+.bk-table td.mono { font-family:'DM Mono',monospace; font-size:12px; color:var(--blue); font-weight:500; }
+.bk-table td .text-muted { font-size:11px; color:var(--text-3); margin-top:1px; }
+
+/* BOOKING DETAIL PANEL */
+.bk-detail { width:0; min-width:0; overflow:hidden; border-left:1px solid var(--border); background:var(--bg-2); transition:width var(--transition),min-width var(--transition); display:flex; flex-direction:column; }
+.bk-detail.open { width:400px; min-width:400px; }
+.bk-detail-scroll { flex:1; overflow-y:auto; }
+.bk-detail-scroll::-webkit-scrollbar { width:4px; }
+.bk-detail-scroll::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:2px; }
+
+/* CONVERT MODAL */
+.convert-modal { width:600px; }
+.convert-header-info { background:var(--bg-3); border-radius:9px; padding:14px 16px; margin-bottom:4px; }
+
+/* VIEW TOGGLE */
+.view-toggle { display:flex; gap:2px; background:var(--bg-3); border:1px solid var(--border); border-radius:7px; padding:3px; }
+.view-btn { width:30px; height:28px; border-radius:5px; display:grid; place-items:center; cursor:pointer; color:var(--text-3); transition:all var(--transition); border:none; background:none; }
+.view-btn.active { background:var(--bg-2); color:var(--text-1); box-shadow:0 1px 3px rgba(0,0,0,0.3); }
+.view-btn svg { width:14px; height:14px; }
+
+/* URGENCY DOT */
+.urgency-high   { background:var(--red); }
+.urgency-medium { background:var(--amber); }
+.urgency-low    { background:var(--green); }
+
+/* NOTIFICATION TOAST */
+.toast { position:fixed; bottom:24px; right:24px; background:var(--bg-3); border:1px solid var(--border-strong); border-radius:10px; padding:14px 18px; font-size:13px; font-weight:500; display:flex; align-items:center; gap:10px; box-shadow:0 8px 24px rgba(0,0,0,0.3); z-index:200; animation:toastIn 0.3s ease; }
+@keyframes toastIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+.toast.hide { animation:toastOut 0.3s ease forwards; }
+@keyframes toastOut { to{opacity:0;transform:translateY(12px)} }
+.toast-icon { width:20px; height:20px; border-radius:50%; display:grid; place-items:center; flex-shrink:0; }
+.toast-icon svg { width:11px; height:11px; }
+
+/* BOOKING PAGINATION */
+.bk-pagination { display:flex; align-items:center; justify-content:space-between; padding:12px 20px; border-top:1px solid var(--border); background:var(--bg-2); flex-shrink:0; font-size:12.5px; color:var(--text-3); }
 </style>
 </head>
 <body>
@@ -366,6 +444,11 @@ html, body { height: 100%; background: var(--bg); color: var(--text-1); font-fam
       <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 4h14v10a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/><path d="M6 4V2.5A.5.5 0 016.5 2h5a.5.5 0 01.5.5V4"/><path d="M2 8h14"/></svg>
       <span class="nav-label">Shipments</span>
       <span class="nav-badge" id="shipBadge">12</span>
+    </div>
+    <div class="nav-item" onclick="showPage('bookings',this)" id="navBookings">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="2" y="3" width="14" height="13" rx="1.5"/><path d="M2 7h14"/><path d="M6 1v4M12 1v4"/><path d="M6 11h2M10 11h2M6 14h2"/></svg>
+      <span class="nav-label">Bookings</span>
+      <span class="nav-badge" id="bkBadge" style="background:var(--amber)">0</span>
     </div>
     <div class="nav-item" onclick="showPage('placeholder',this)">
       <svg class="nav-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="1" y="5" width="12" height="9" rx="1.5"/><path d="M13 8l3 2v4h-3V8z"/><circle cx="4.5" cy="14" r="1.5"/><circle cx="10.5" cy="14" r="1.5"/><circle cx="15" cy="14" r="1.5"/></svg>
@@ -644,6 +727,52 @@ html, body { height: 100%; background: var(--bg); color: var(--text-1); font-fam
           </button>
         </div>
         <div class="dp-scroll" id="dpScroll"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ BOOKINGS PAGE ════ -->
+  <div class="page" id="page-bookings">
+    <!-- KPI BAR -->
+    <div style="display:flex;gap:12px;padding:16px 24px 0;flex-shrink:0">
+      <div class="stat-card" style="flex:1;padding:14px 18px;animation:none"><div class="stat-top" style="margin-bottom:6px"><div class="stat-icon" style="background:var(--blue-dim);color:var(--blue);width:28px;height:28px"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="2" y="3" width="14" height="13" rx="1.5"/><path d="M2 7h14"/><path d="M6 1v4M12 1v4"/></svg></div></div><div class="stat-value" style="font-size:22px" id="bkKpiTotal">0</div><div class="stat-label">Total Requests</div></div>
+      <div class="stat-card" style="flex:1;padding:14px 18px;animation:none"><div class="stat-top" style="margin-bottom:6px"><div class="stat-icon" style="background:var(--blue-dim);color:var(--blue);width:28px;height:28px"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 2l2 5h5l-4 3 2 5-5-3-5 3 2-5-4-3h5z"/></svg></div></div><div class="stat-value" style="font-size:22px;color:var(--blue)" id="bkKpiNew">0</div><div class="stat-label">New / Unreviewed</div></div>
+      <div class="stat-card" style="flex:1;padding:14px 18px;animation:none"><div class="stat-top" style="margin-bottom:6px"><div class="stat-icon" style="background:var(--purple-dim);color:var(--purple);width:28px;height:28px"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="9" r="7"/><path d="M9 5v4l2.5 2.5"/></svg></div></div><div class="stat-value" style="font-size:22px;color:var(--purple)" id="bkKpiReviewing">0</div><div class="stat-label">Under Review</div></div>
+      <div class="stat-card" style="flex:1;padding:14px 18px;animation:none"><div class="stat-top" style="margin-bottom:6px"><div class="stat-icon" style="background:var(--green-dim);color:var(--green);width:28px;height:28px"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M2 9l5 5 9-9"/></svg></div></div><div class="stat-value" style="font-size:22px;color:var(--green)" id="bkKpiConverted">0</div><div class="stat-label">Converted</div></div>
+      <div class="stat-card" style="flex:1;padding:14px 18px;animation:none"><div class="stat-top" style="margin-bottom:6px"><div class="stat-icon" style="background:var(--red-dim);color:var(--red);width:28px;height:28px"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 5l8 8M13 5l-8 8"/></svg></div></div><div class="stat-value" style="font-size:22px;color:var(--red)" id="bkKpiRejected">0</div><div class="stat-label">Rejected</div></div>
+    </div>
+    <!-- TOOLBAR -->
+    <div class="sh-toolbar">
+      <div class="sh-toolbar-left">
+        <div class="search-wrap" style="flex:1;max-width:280px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg><input type="text" placeholder="Search ID, customer, route…" id="bkSearch" oninput="bkApplyFilters()"></div>
+        <div class="filter-tabs"><div class="filter-tab active" onclick="bkSetStatus('all',this)">All</div><div class="filter-tab" onclick="bkSetStatus('new',this)">New</div><div class="filter-tab" onclick="bkSetStatus('reviewing',this)">Reviewing</div><div class="filter-tab" onclick="bkSetStatus('approved',this)">Approved</div><div class="filter-tab" onclick="bkSetStatus('converted',this)">Converted</div><div class="filter-tab" onclick="bkSetStatus('rejected',this)">Rejected</div></div>
+        <select class="sh-select" onchange="bkSetUrgency(this.value)"><option value="all">All Urgency</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
+        <select class="sh-select" onchange="bkSetModeFilter(this.value)"><option value="all">All Modes</option><option value="Sea">Sea</option><option value="Air">Air</option><option value="Road">Road</option><option value="Rail">Rail</option></select>
+      </div>
+      <div class="sh-toolbar-right">
+        <div class="view-toggle"><button class="view-btn active" id="bkViewGridBtn" onclick="bkSetView('grid',this)" title="Grid view"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="8" y="1" width="5" height="5" rx="1"/><rect x="1" y="8" width="5" height="5" rx="1"/><rect x="8" y="8" width="5" height="5" rx="1"/></svg></button><button class="view-btn" id="bkViewListBtn" onclick="bkSetView('list',this)" title="List view"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1 3h12M1 7h12M1 11h12"/></svg></button></div>
+        <button class="btn" onclick="bkSimulateIncoming()" style="color:var(--amber);border-color:rgba(245,158,11,0.3)"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" style="width:13px;height:13px"><path d="M7 10V2M4 5l3-3 3 3"/><path d="M1 11v1a1 1 0 001 1h10a1 1 0 001-1v-1"/></svg>Simulate Incoming</button>
+        <button class="btn" onclick="bkExportCSV()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M7 1v8M4 6l3 3 3-3"/><path d="M1 11v1a1 1 0 001 1h10a1 1 0 001-1v-1"/></svg>Export</button>
+      </div>
+    </div>
+    <!-- BODY -->
+    <div style="flex:1;display:flex;overflow:hidden">
+      <!-- GRID VIEW -->
+      <div id="bkGridView" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+        <div style="flex:1;overflow-y:auto;padding:20px 24px;" id="bkGridScroll">
+          <div id="bkGridBody" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;align-content:start"></div>
+        </div>
+        <div class="bk-pagination"><span id="bkPagInfo">—</span><div class="pag-btns" id="bkPagBtns"></div></div>
+      </div>
+      <!-- LIST VIEW -->
+      <div id="bkListView" style="flex:1;display:none;flex-direction:column;overflow:hidden">
+        <div class="bk-table-wrap"><table class="bk-table"><thead><tr><th style="width:36px;padding-left:16px"><input type="checkbox" class="sh-checkbox" id="bkSelectAll" onchange="bkToggleAll(this.checked)"></th><th>Booking ID</th><th>Customer</th><th>Route</th><th>Mode</th><th>Cargo</th><th>Weight</th><th>Urgency</th><th>Received</th><th>Status</th><th></th></tr></thead><tbody id="bkTableBody"></tbody></table></div>
+        <div class="bk-pagination"><span id="bkPagInfoList">—</span><div class="pag-btns" id="bkPagBtnsList"></div></div>
+      </div>
+      <!-- DETAIL PANEL -->
+      <div class="bk-detail" id="bkDetailPanel">
+        <div class="dp-header"><div><div style="font-size:15px;font-weight:600;letter-spacing:-0.02em" id="bkDpTitle">—</div><div style="margin-top:4px" id="bkDpBadge"></div></div><button class="dp-close" onclick="bkCloseDetail()"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 1l10 10M11 1L1 11"/></svg></button></div>
+        <div class="bk-detail-scroll" id="bkDpScroll"></div>
       </div>
     </div>
   </div>
@@ -1218,12 +1347,432 @@ function initBarChart() {
 }
 
 /* ══════════════════════════════════════
+   BOOKINGS DATA & STATE
+══════════════════════════════════════ */
+const BK_CUSTOMERS = ['Horizon Trade Ltd','Pacific Rim Co.','AlphaGoods GmbH','Meridian Imports','BlueStar Exports','Nova Freight Inc','Stellar Commerce','Atlas Logistics','Caspian Cargo','Summit Trade'];
+const BK_ROUTES = [['Nairobi','London'],['Dubai','Chicago'],['Shanghai','Hamburg'],['Singapore','Rotterdam'],['Lagos','Antwerp'],['Dar es Salaam','Mumbai'],['Casablanca','Barcelona'],['Jakarta','Frankfurt'],['Manila','Long Beach'],['Karachi','Amsterdam']];
+const BK_STATUSES = ['new','reviewing','approved','converted','rejected'];
+const BK_URGENCY = ['high','medium','low'];
+const BK_NOTES_POOL = ['Fragile items — handle with care','Temperature controlled required','Hazardous documentation enclosed','Pre-clearance paperwork attached','Consolidation with existing booking preferred','Express delivery required — client deadline','Partial shipment, remainder to follow'];
+
+function genBookings(n=22){
+  const list=[];
+  for(let i=0;i<n;i++){
+    const [orig,dest]=randItem(BK_ROUTES);
+    const status = i<3?'new': i<6?'reviewing': i<10?'approved': i<16?'converted':'rejected';
+    const received=new Date(Date.now()-randInt(0,14)*86400000);
+    list.push({
+      id:`BKG-${String(2000+i).padStart(5,'0')}`,
+      customer:randItem(BK_CUSTOMERS),
+      origin:orig, dest,
+      mode:randItem(MODES),
+      type:randItem(CARGO_TYPES),
+      weight:randInt(200,12000),
+      containers:randInt(1,6),
+      urgency:randItem(BK_URGENCY),
+      status,
+      received,
+      contact:['Maria Santos','James Okonkwo','Li Wei','Sara Hassan','Tom Müller'][randInt(0,4)],
+      email:`contact@${randItem(BK_CUSTOMERS).toLowerCase().replace(/[^a-z]/g,'')}.com`,
+      phone:`+${randInt(1,99)} ${randInt(100,999)} ${randInt(1000,9999)}`,
+      message: i%3===0 ? randItem(BK_NOTES_POOL) : '',
+      convertedTo: status==='converted' ? `SHG-0${randInt(1000,9999)}` : null,
+      assignedTo: status==='reviewing'||status==='approved' ? ['Amir K.','Sara M.','Chen W.'][randInt(0,2)] : null,
+      notes: '',
+    });
+  }
+  return list;
+}
+
+let allBookings = genBookings(22);
+let bkFiltered = [...allBookings];
+let bkStatusFilter = 'all';
+let bkUrgencyFilter = 'all';
+let bkModeFilter2 = 'all';
+let bkCurrentPage = 1;
+const bkPerPage = 15;
+let bkSelectedId = null;
+let bkSelectedIds = new Set();
+
+const BK_STATUS_LABEL = {new:'New',reviewing:'Reviewing',approved:'Approved',converted:'Converted',rejected:'Rejected'};
+const BK_URGENCY_COLOR = {high:'var(--red)',medium:'var(--amber)',low:'var(--green)'};
+let bkView = 'grid';
+
+/* FILTERS */
+function bkSetStatus(s,el){ bkStatusFilter=s; document.querySelectorAll('.filter-tabs .filter-tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); bkCurrentPage=1; bkApplyFilters(); }
+function bkSetUrgency(v){ bkUrgencyFilter=v; bkCurrentPage=1; bkApplyFilters(); }
+function bkSetModeFilter(v){ bkModeFilter2=v; bkCurrentPage=1; bkApplyFilters(); }
+function bkApplyFilters(){
+  const q=document.getElementById('bkSearch').value.trim().toLowerCase();
+  bkFiltered=allBookings.filter(b=>{
+    if(bkStatusFilter!=='all'&&b.status!==bkStatusFilter) return false;
+    if(bkUrgencyFilter!=='all'&&b.urgency!==bkUrgencyFilter) return false;
+    if(bkModeFilter2!=='all'&&b.mode!==bkModeFilter2) return false;
+    if(q&&!`${b.id} ${b.customer} ${b.origin} ${b.dest} ${b.type}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  bkUpdateKPIs(); bkRenderGrid(); bkRenderTable(); bkUpdatePagination();
+}
+function bkUpdateKPIs(){
+  const c={new:0,reviewing:0,approved:0,converted:0,rejected:0};
+  allBookings.forEach(b=>{ if(c[b.status]!==undefined) c[b.status]++; });
+  document.getElementById('bkKpiTotal').textContent=allBookings.length;
+  document.getElementById('bkKpiNew').textContent=c.new;
+  document.getElementById('bkKpiReviewing').textContent=c.reviewing;
+  document.getElementById('bkKpiConverted').textContent=c.converted;
+  document.getElementById('bkKpiRejected').textContent=c.rejected;
+  const pending=c.new+c.reviewing;
+  document.getElementById('bkBadge').textContent=pending;
+  document.getElementById('bkBadge').style.display=pending>0?'':'none';
+}
+
+/* VIEW TOGGLE */
+function bkSetView(v,el){
+  bkView=v;
+  document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('bkGridView').style.display=v==='grid'?'flex':'none';
+  document.getElementById('bkListView').style.display=v==='list'?'flex':'none';
+  bkApplyFilters();
+}
+
+/* GRID RENDER */
+function bkRenderGrid(){
+  const start=(bkCurrentPage-1)*bkPerPage;
+  const slice=bkFiltered.slice(start,start+bkPerPage);
+  const grid=document.getElementById('bkGridBody');
+  if(!grid) return;
+  if(slice.length===0){
+    grid.innerHTML=`<div style="grid-column:1/-1"><div class="empty-state"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><rect x="4" y="8" width="32" height="28" rx="3"/><path d="M13 4v8M27 4v8M4 18h32"/></svg><p>No bookings match your filters</p></div></div>`;
+    return;
+  }
+  grid.innerHTML=slice.map(b=>bkCardHTML(b)).join('');
+}
+
+function bkCardHTML(b){
+  const sel=bkSelectedId===b.id;
+  const urgencyColor=BK_URGENCY_COLOR[b.urgency];
+  return `<div class="bk-card${sel?' selected':''}" onclick="bkOpenDetail('${b.id}')">
+    <div class="bk-card-top">
+      <span class="bk-card-id">${b.id}</span>
+      <span class="bk-card-time">${timeAgo(b.received)}</span>
+    </div>
+    <div class="bk-card-name">${b.customer}</div>
+    <div class="bk-card-route" style="margin-bottom:6px">
+      <span>${b.origin}</span>
+      <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:10px;flex-shrink:0;color:var(--text-3)"><path d="M1 3h8M6 1l2 2-2 2"/></svg>
+      <span>${b.dest}</span>
+    </div>
+    <div style="font-size:11.5px;color:var(--text-3);margin-bottom:10px">${b.type} · ${b.weight.toLocaleString()} kg · ${b.containers} ctr</div>
+    <div class="bk-card-footer">
+      <span class="badge ${b.status}" style="font-size:11px">${BK_STATUS_LABEL[b.status]}</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-3)">${MODE_ICONS[b.mode]||''}${b.mode}</div>
+        <div style="width:1px;height:10px;background:var(--border)"></div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:${urgencyColor}">
+          <span style="width:5px;height:5px;border-radius:50%;background:${urgencyColor};display:inline-block"></span>
+          ${b.urgency}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function timeAgo(d){
+  const diff=Math.floor((Date.now()-d.getTime())/60000);
+  if(diff<1) return 'just now';
+  if(diff<60) return `${diff}m ago`;
+  if(diff<1440) return `${Math.floor(diff/60)}h ago`;
+  return `${Math.floor(diff/1440)}d ago`;
+}
+
+/* TABLE RENDER */
+function bkRenderTable(){
+  const start=(bkCurrentPage-1)*bkPerPage;
+  const slice=bkFiltered.slice(start,start+bkPerPage);
+  const tbody=document.getElementById('bkTableBody');
+  if(!tbody) return;
+  if(slice.length===0){ tbody.innerHTML=`<tr><td colspan="11"><div class="empty-state"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><rect x="4" y="8" width="32" height="28" rx="3"/><path d="M13 4v8M27 4v8M4 18h32"/></svg><p>No bookings match your filters</p></div></td></tr>`; return; }
+  tbody.innerHTML=slice.map(b=>{
+    const sel=bkSelectedIds.has(b.id);
+    const act=bkSelectedId===b.id;
+    return `<tr class="${act?'bk-selected-row':''}" onclick="bkOpenDetail('${b.id}')">
+      <td style="padding-left:16px"><input type="checkbox" class="sh-checkbox" ${sel?'checked':''} onchange="bkToggleRow('${b.id}',this.checked)" onclick="event.stopPropagation()"></td>
+      <td class="mono">${b.id}</td>
+      <td>${b.customer}<div class="text-muted">${b.email}</div></td>
+      <td>${b.origin} → ${b.dest}</td>
+      <td>${MODE_ICONS[b.mode]||''}${b.mode}</td>
+      <td>${b.type}</td>
+      <td>${b.weight.toLocaleString()} kg</td>
+      <td><div style="display:flex;align-items:center;gap:5px"><div class="bk-urgency urgency-${b.urgency}" style="width:7px;height:7px;border-radius:50%;background:${BK_URGENCY_COLOR[b.urgency]}"></div><span style="text-transform:capitalize;font-size:12.5px">${b.urgency}</span></div></td>
+      <td style="font-size:12px;color:var(--text-3)">${fmtDate(b.received)}</td>
+      <td><span class="badge ${b.status}">${BK_STATUS_LABEL[b.status]}</span></td>
+      <td><button style="background:none;border:none;cursor:pointer;color:var(--text-3);padding:4px;border-radius:5px;display:grid;place-items:center" onclick="event.stopPropagation();bkOpenDetail('${b.id}')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" style="width:13px;height:13px"><path d="M5 2h7v7"/><path d="M12 2L2 12"/></svg></button></td>
+    </tr>`;
+  }).join('');
+}
+
+function bkUpdatePagination(){
+  const total=bkFiltered.length;
+  const pages=Math.max(1,Math.ceil(total/bkPerPage));
+  if(bkCurrentPage>pages) bkCurrentPage=pages;
+  const start=(bkCurrentPage-1)*bkPerPage+1;
+  const end=Math.min(bkCurrentPage*bkPerPage,total);
+  const infoText=total===0?'No results':`Showing ${start}–${end} of ${total}`;
+  ['bkPagInfo','bkPagInfoList'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=infoText; });
+
+  let html=`<button class="pag-btn" onclick="bkGoPage(${bkCurrentPage-1})" ${bkCurrentPage===1?'disabled':''}><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 2L3 6l4 4"/></svg></button>`;
+  for(let p=1;p<=pages;p++){ if(pages>7&&p>2&&p<pages-1&&Math.abs(p-bkCurrentPage)>1){if(p===3||p===pages-2) html+=`<button class="pag-btn" disabled style="opacity:.4">…</button>`;continue;} html+=`<button class="pag-btn${p===bkCurrentPage?' active':''}" onclick="bkGoPage(${p})">${p}</button>`; }
+  html+=`<button class="pag-btn" onclick="bkGoPage(${bkCurrentPage+1})" ${bkCurrentPage===pages?'disabled':''}><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 2l4 4-4 4"/></svg></button>`;
+  ['bkPagBtns','bkPagBtnsList'].forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML=html; });
+}
+function bkGoPage(p){ const pages=Math.ceil(bkFiltered.length/bkPerPage); if(p<1||p>pages) return; bkCurrentPage=p; bkRenderTable(); bkUpdatePagination(); }
+
+/* SELECTION */
+function bkToggleRow(id,checked){ if(checked) bkSelectedIds.add(id); else bkSelectedIds.delete(id); bkRenderTable(); }
+function bkToggleAll(checked){ const start=(bkCurrentPage-1)*bkPerPage; bkFiltered.slice(start,start+bkPerPage).forEach(b=>{ if(checked) bkSelectedIds.add(b.id); else bkSelectedIds.delete(b.id); }); bkRenderTable(); }
+
+/* DETAIL PANEL */
+function bkOpenDetail(id){
+  const b=allBookings.find(x=>x.id===id);
+  if(!b) return;
+  bkSelectedId=id;
+  document.getElementById('bkDpTitle').textContent=b.id;
+  document.getElementById('bkDpBadge').innerHTML=`<span class="badge ${b.status}">${BK_STATUS_LABEL[b.status]}</span> <span style="margin-left:6px;display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:${BK_URGENCY_COLOR[b.urgency]}"><span style="width:6px;height:6px;border-radius:50%;background:${BK_URGENCY_COLOR[b.urgency]};display:inline-block"></span>${b.urgency} urgency</span>`;
+
+  const canConvert = b.status==='approved' || b.status==='new' || b.status==='reviewing';
+  const isConverted = b.status==='converted';
+  const isRejected = b.status==='rejected';
+
+  document.getElementById('bkDpScroll').innerHTML=`
+    <!-- REQUESTER -->
+    <div class="dp-section">
+      <div class="dp-section-title">Requester</div>
+      <div class="dp-row"><span class="dp-key">Company</span><span class="dp-val">${b.customer}</span></div>
+      <div class="dp-row"><span class="dp-key">Contact</span><span class="dp-val">${b.contact}</span></div>
+      <div class="dp-row"><span class="dp-key">Email</span><span class="dp-val" style="color:var(--blue)">${b.email}</span></div>
+      <div class="dp-row"><span class="dp-key">Phone</span><span class="dp-val">${b.phone}</span></div>
+      <div class="dp-row"><span class="dp-key">Received</span><span class="dp-val mono">${fmtDate(b.received)}</span></div>
+      ${b.assignedTo?`<div class="dp-row"><span class="dp-key">Assigned To</span><span class="dp-val">${b.assignedTo}</span></div>`:''}
+    </div>
+    <!-- SHIPMENT REQUEST -->
+    <div class="dp-section">
+      <div class="dp-section-title">Shipment Request</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <div style="flex:1;background:var(--bg-3);border-radius:7px;padding:8px 12px;text-align:center"><div style="font-size:11px;color:var(--text-3)">Origin</div><div style="font-size:14px;font-weight:600;margin-top:2px">${b.origin}</div></div>
+        <svg viewBox="0 0 20 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:28px;flex-shrink:0;color:var(--text-3)"><path d="M2 5h16M14 2l4 3-4 3"/></svg>
+        <div style="flex:1;background:var(--bg-3);border-radius:7px;padding:8px 12px;text-align:center"><div style="font-size:11px;color:var(--text-3)">Destination</div><div style="font-size:14px;font-weight:600;margin-top:2px">${b.dest}</div></div>
+      </div>
+      <div class="dp-row"><span class="dp-key">Mode</span><span class="dp-val">${MODE_ICONS[b.mode]}${b.mode}</span></div>
+      <div class="dp-row"><span class="dp-key">Cargo Type</span><span class="dp-val">${b.type}</span></div>
+      <div class="dp-row"><span class="dp-key">Weight</span><span class="dp-val">${b.weight.toLocaleString()} kg</span></div>
+      <div class="dp-row"><span class="dp-key">Containers</span><span class="dp-val">${b.containers}</span></div>
+      ${b.message?`<div style="margin-top:8px;background:var(--bg-3);border-radius:7px;padding:10px 12px;font-size:12.5px;color:var(--text-2);line-height:1.5"><div style="font-size:11px;color:var(--text-3);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Customer Note</div>${b.message}</div>`:''}
+    </div>
+    ${isConverted?`<div class="dp-section"><div class="dp-section-title">Conversion</div><div style="background:var(--green-dim);border:1px solid rgba(34,197,94,0.2);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" style="width:18px;height:18px;color:var(--green);flex-shrink:0"><path d="M2 9l5 5 9-9"/></svg><div><div style="font-size:13px;font-weight:600;color:var(--green)">Converted to Shipment</div><div style="font-size:12px;color:var(--text-3);margin-top:2px">Shipment ID: <span style="font-family:'DM Mono',monospace;color:var(--blue)">${b.convertedTo}</span></div></div></div></div>`:''}
+    ${isRejected?`<div class="dp-section"><div style="background:var(--red-dim);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" style="width:18px;height:18px;color:var(--red);flex-shrink:0"><path d="M5 5l8 8M13 5l-8 8"/></svg><div><div style="font-size:13px;font-weight:600;color:var(--red)">Booking Rejected</div><div style="font-size:12px;color:var(--text-3);margin-top:2px">This booking request was declined.</div></div></div></div>`:''}
+    <!-- NOTES -->
+    <div class="dp-section">
+      <div class="dp-section-title" style="margin-bottom:8px">Internal Notes</div>
+      <textarea id="bkNoteInput" style="width:100%;background:var(--bg-3);border:1px solid var(--border-strong);border-radius:7px;padding:8px 10px;font-family:inherit;font-size:12.5px;color:var(--text-1);outline:none;resize:vertical;min-height:64px;line-height:1.5" placeholder="Add ops note…" oninput="bkSaveNote('${b.id}',this.value)">${b.notes}</textarea>
+    </div>
+    <!-- ACTIONS -->
+    <div class="dp-section">
+      <div class="dp-section-title" style="margin-bottom:10px">Actions</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${!isConverted&&!isRejected?`<button class="btn primary" style="justify-content:center;width:100%" onclick="openConvertModal('${b.id}')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="width:14px;height:14px"><path d="M7 1v12M1 7h12"/></svg>Convert to Shipment</button>`:''}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          ${b.status!=='reviewing'&&!isConverted&&!isRejected?`<button class="btn" style="justify-content:center" onclick="bkUpdateStatus('${b.id}','reviewing')">Mark Reviewing</button>`:''}
+          ${b.status!=='approved'&&!isConverted&&!isRejected?`<button class="btn" style="justify-content:center;color:var(--green)" onclick="bkUpdateStatus('${b.id}','approved')">Approve</button>`:''}
+          ${!isRejected&&!isConverted?`<button class="btn" style="justify-content:center;color:var(--red);grid-column:${b.status==='approved'?'1':'auto'}" onclick="bkUpdateStatus('${b.id}','rejected')">Reject</button>`:''}
+        </div>
+        ${isConverted?`<button class="btn" style="justify-content:center;color:var(--blue)" onclick="showPage('shipments',document.querySelector('[onclick*=shipments]'));closeDetail();bkCloseDetail()">View in Shipments →</button>`:''}
+      </div>
+    </div>
+  `;
+  document.getElementById('bkDetailPanel').classList.add('open');
+  bkRenderGrid();
+  if(bkView==='list') bkRenderTable();
+}
+
+function bkCloseDetail(){
+  bkSelectedId=null;
+  document.getElementById('bkDetailPanel').classList.remove('open');
+  bkRenderGrid();
+  if(bkView==='list') bkRenderTable();
+}
+
+function bkUpdateStatus(id,status){
+  const b=allBookings.find(x=>x.id===id);
+  if(!b) return;
+  b.status=status;
+  bkApplyFilters();
+  bkOpenDetail(id);
+  showToast(status==='approved'?'Booking approved':'Booking updated',status==='approved'?'green':status==='rejected'?'red':'blue');
+}
+
+function bkSaveNote(id,val){
+  const b=allBookings.find(x=>x.id===id);
+  if(b) b.notes=val;
+}
+
+/* CONVERT MODAL */
+let convertBookingId = null;
+function openConvertModal(id){
+  convertBookingId=id;
+  const b=allBookings.find(x=>x.id===id);
+  if(!b) return;
+  document.getElementById('cmBookingRef').textContent=b.id;
+  document.getElementById('cmCustomer').textContent=b.customer;
+  document.getElementById('cmRoute').textContent=`${b.origin} → ${b.dest}`;
+  document.getElementById('cmWeight').textContent=`${b.weight.toLocaleString()} kg`;
+  document.getElementById('cfOrigin').value=b.origin;
+  document.getElementById('cfDest').value=b.dest;
+  document.getElementById('cfCustomer').value=b.customer;
+  document.getElementById('cfWeight').value=b.weight;
+  document.getElementById('cfMode').value=b.mode;
+  document.getElementById('cfType').value=b.type;
+  document.getElementById('cfContainers').value=b.containers;
+  document.getElementById('cfContact').value=b.contact;
+  document.getElementById('cfEmail').value=b.email;
+  document.getElementById('convertModal').classList.add('open');
+}
+function closeConvertModal(){ document.getElementById('convertModal').classList.remove('open'); }
+function confirmConvert(){
+  const b=allBookings.find(x=>x.id===convertBookingId);
+  if(!b) return;
+  const etaVal=document.getElementById('cfETA').value;
+  const eta=etaVal?new Date(etaVal):new Date(Date.now()+randInt(10,30)*86400000);
+  const newShipId=`WEB-${String(Date.now()).slice(-5)}`;
+  const newS={
+    id:newShipId, origin:document.getElementById('cfOrigin').value||b.origin,
+    dest:document.getElementById('cfDest').value||b.dest,
+    customer:document.getElementById('cfCustomer').value||b.customer,
+    weight:parseInt(document.getElementById('cfWeight').value)||b.weight,
+    mode:document.getElementById('cfMode').value||b.mode,
+    type:document.getElementById('cfType').value||b.type,
+    status:'pending', eta, created:new Date(),
+    containers:parseInt(document.getElementById('cfContainers').value)||b.containers,
+    contact:document.getElementById('cfContact').value||b.contact,
+    email:document.getElementById('cfEmail').value||b.email,
+    notes:`Converted from booking ${b.id}`,
+    vessel:'TBD', port:'TBD', insurance:'TBD', incoterm:'FOB',
+  };
+  allShipments.unshift(newS);
+  b.status='converted'; b.convertedTo=newShipId;
+  closeConvertModal();
+  bkApplyFilters();
+  bkOpenDetail(b.id);
+  applyFilters();
+  showToast(`Shipment ${newShipId} created!`,'green');
+}
+
+/* SIMULATE INCOMING */
+let bkAutoId=100;
+function bkSimulateIncoming(){
+  const [orig,dest]=randItem(BK_ROUTES);
+  const newBk={
+    id:`BKG-${String(2000+(bkAutoId++)).padStart(5,'0')}`,
+    customer:randItem(BK_CUSTOMERS),
+    origin:orig, dest,
+    mode:randItem(MODES),
+    type:randItem(CARGO_TYPES),
+    weight:randInt(300,8000),
+    containers:randInt(1,4),
+    urgency:randItem(BK_URGENCY),
+    status:'new',
+    received:new Date(),
+    contact:'Web Portal User',
+    email:'booking@website.com',
+    phone:'+1 555 0000',
+    message:randItem(BK_NOTES_POOL),
+    convertedTo:null,
+    assignedTo:null,
+    notes:'',
+  };
+  allBookings.unshift(newBk);
+  bkApplyFilters();
+  showToast(`New booking request from ${newBk.customer}`,'blue');
+}
+
+/* EXPORT */
+function bkExportCSV(){
+  const header=['ID','Customer','Origin','Destination','Mode','Type','Weight','Urgency','Status','Received'];
+  const rows=bkFiltered.map(b=>[b.id,b.customer,b.origin,b.dest,b.mode,b.type,b.weight,b.urgency,b.status,fmtDate(b.received)]);
+  const csv=[header,...rows].map(r=>r.join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='bookings.csv'; a.click();
+}
+
+/* TOAST */
+function showToast(msg,type='blue'){
+  const colors={blue:'var(--blue)',green:'var(--green)',amber:'var(--amber)',red:'var(--red)'};
+  const icons={blue:`<path d="M8 5v4M8 11v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>`,green:`<path d="M3 7l3 3 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>`,amber:`<path d="M8 2L1.5 13h13L8 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>`,red:`<path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>`};
+  const t=document.createElement('div'); t.className='toast';
+  t.innerHTML=`<div class="toast-icon" style="background:${colors[type]}20;color:${colors[type]}"><svg viewBox="0 0 16 16" fill="none" style="width:11px;height:11px">${icons[type]||icons.blue}</svg></div><span>${msg}</span>`;
+  document.body.appendChild(t);
+  setTimeout(()=>{ t.classList.add('hide'); setTimeout(()=>t.remove(),300); },3200);
+}
+
+/* INIT BOOKINGS */
+bkApplyFilters();
+
+/* ══════════════════════════════════════
    INIT
 ══════════════════════════════════════ */
-// Default to shipments page
 showPage('shipments', document.querySelector('.nav-item.active'));
 applyFilters();
 initBarChart();
 </script>
+
+<!-- CONVERT BOOKING MODAL -->
+<div class="modal-overlay" id="convertModal" onclick="if(event.target===this)closeConvertModal()">
+  <div class="modal" style="width:600px">
+    <div class="modal-header">
+      <div>
+        <span class="modal-title">Convert Booking to Shipment</span>
+        <div style="font-size:12px;color:var(--text-3);margin-top:2px">Review and confirm details before creating the shipment</div>
+      </div>
+      <button class="modal-close" onclick="closeConvertModal()"><svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 1l11 11M12 1L1 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--blue-dim);border:1px solid var(--blue-border);border-radius:9px;padding:12px 16px;display:flex;align-items:center;gap:14px">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" style="width:20px;height:20px;color:var(--blue);flex-shrink:0"><rect x="2" y="3" width="14" height="13" rx="1.5"/><path d="M2 7h14"/><path d="M6 1v4M12 1v4"/></svg>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:11px;color:var(--blue);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Source Booking</div>
+          <div style="font-size:13px;font-weight:600;margin-top:2px"><span id="cmBookingRef" style="font-family:'DM Mono',monospace;color:var(--blue)">—</span>&nbsp;·&nbsp;<span id="cmCustomer">—</span></div>
+          <div style="font-size:12px;color:var(--text-3);margin-top:1px"><span id="cmRoute">—</span>&nbsp;·&nbsp;<span id="cmWeight">—</span></div>
+        </div>
+      </div>
+      <div class="form-divider">Route</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Origin</label><input class="form-input" id="cfOrigin"></div>
+        <div class="form-group"><label class="form-label">Destination</label><input class="form-input" id="cfDest"></div>
+        <div class="form-group"><label class="form-label">Transport Mode</label><select class="form-select" id="cfMode"><option>Sea</option><option>Air</option><option>Road</option><option>Rail</option></select></div>
+        <div class="form-group"><label class="form-label">ETA</label><input class="form-input" type="date" id="cfETA"></div>
+      </div>
+      <div class="form-divider">Cargo</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Customer</label><input class="form-input" id="cfCustomer"></div>
+        <div class="form-group"><label class="form-label">Weight (kg)</label><input class="form-input" type="number" id="cfWeight"></div>
+        <div class="form-group"><label class="form-label">Cargo Type</label><select class="form-select" id="cfType"><option>General</option><option>Electronics</option><option>Perishable</option><option>Hazardous</option><option>Automotive</option><option>Textiles</option><option>Machinery</option></select></div>
+        <div class="form-group"><label class="form-label">Containers</label><input class="form-input" type="number" id="cfContainers"></div>
+      </div>
+      <div class="form-divider">Contact</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Contact Name</label><input class="form-input" id="cfContact"></div>
+        <div class="form-group"><label class="form-label">Contact Email</label><input class="form-input" type="email" id="cfEmail"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeConvertModal()">Cancel</button>
+      <button class="btn primary" onclick="confirmConvert()">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="width:13px;height:13px"><path d="M7 1v12M1 7h12"/></svg>
+        Create Shipment
+      </button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

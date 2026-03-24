@@ -46,23 +46,23 @@ type FormState = {
 const CSS = `
 *, *::before, *::after { box-sizing: border-box; }
 :root {
-  --blue:#3B82F6; --blue-dim:rgba(59,130,246,0.12); --blue-border:rgba(59,130,246,0.3);
-  --bg:#0F1117; --bg-2:#161923; --bg-3:#1D2230; --bg-4:#242A38;
-  --border:rgba(255,255,255,0.07); --border-strong:rgba(255,255,255,0.12);
-  --text-1:#F1F3F7; --text-2:#9BA3B5; --text-3:#6B7385;
-    --scroll-track:#131722; --scroll-thumb:#323A4F; --scroll-thumb-hover:#425074;
-  --green:#22C55E; --amber:#F59E0B; --red:#EF4444; --purple:#A78BFA;
-  --green-dim:rgba(34,197,94,0.1); --amber-dim:rgba(245,158,11,0.1);
-  --red-dim:rgba(239,68,68,0.1); --purple-dim:rgba(167,139,250,0.1);
+    --blue:#3651BE; --blue-dim:rgba(54,81,190,0.14); --blue-border:rgba(54,81,190,0.36);
+    --bg:#0A0A0A; --bg-2:#151515; --bg-3:#1F1F1F; --bg-4:#373232;
+    --border:rgba(255,255,255,0.12); --border-strong:rgba(255,255,255,0.2);
+    --text-1:#FEFFFF; --text-2:#CFCFD0; --text-3:#A1A1A1;
+        --scroll-track:#151515; --scroll-thumb:#646464; --scroll-thumb-hover:#A1A1A1;
+    --green:#738CBF; --amber:#84A9DB; --red:#D84446; --purple:#522227;
+    --green-dim:rgba(115,140,191,0.14); --amber-dim:rgba(132,169,219,0.16);
+    --red-dim:rgba(216,68,70,0.14); --purple-dim:rgba(82,34,39,0.18);
   --sidebar-w:240px; --sidebar-collapsed:60px;
   --radius:10px; --transition:0.22s cubic-bezier(0.4,0,0.2,1);
 }
 [data-theme="light"] {
-  --bg:#F4F5F8; --bg-2:#FFFFFF; --bg-3:#F0F1F5; --bg-4:#E8EAEF;
-  --border:rgba(0,0,0,0.07); --border-strong:rgba(0,0,0,0.12);
-  --text-1:#111827; --text-2:#4B5563; --text-3:#9CA3AF;
-    --scroll-track:#ECEFF4; --scroll-thumb:#C2CBD8; --scroll-thumb-hover:#A8B3C3;
-  --blue-dim:rgba(59,130,246,0.08);
+    --bg:#FEFFFF; --bg-2:#FEFFFF; --bg-3:#F4F5F8; --bg-4:#DED2E3;
+    --border:rgba(10,10,10,0.1); --border-strong:rgba(10,10,10,0.16);
+    --text-1:#0A0A0A; --text-2:#373232; --text-3:#646464;
+        --scroll-track:#F4F5F8; --scroll-thumb:#CFCFD0; --scroll-thumb-hover:#A1A1A1;
+    --blue-dim:rgba(54,81,190,0.1);
 }
 html,body{height:100%;margin:0;background:var(--bg);color:var(--text-1);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.5;overflow:hidden;}
 /* Theme-aware scrollbars for both dark and light modes */
@@ -96,7 +96,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text-1);font-fam
 .nav-badge{margin-left:auto;font-size:10px;font-weight:600;background:var(--blue);color:white;padding:1px 6px;border-radius:20px;}
 .sidebar.collapsed .nav-badge{opacity:0;}
 .sidebar-footer{padding:12px 8px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;}
-.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#3B82F6,#7C3AED);display:grid;place-items:center;flex-shrink:0;font-size:12px;font-weight:600;color:white;}
+.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#3651BE,#84A9DB);display:grid;place-items:center;flex-shrink:0;font-size:12px;font-weight:600;color:white;}
 .user-info{overflow:hidden;}
 .sidebar.collapsed .user-info{opacity:0;}
 .user-name{font-size:13px;font-weight:500;}
@@ -116,8 +116,8 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text-1);font-fam
 .btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border-strong);background:var(--bg-3);color:var(--text-1);transition:background var(--transition),border-color var(--transition);}
 .btn:hover{background:var(--bg-4);}
 .btn.primary{background:var(--blue);border-color:var(--blue);color:white;}
-.btn.primary:hover{background:#2563EB;border-color:#2563EB;}
-.btn.danger{background:var(--red-dim);border-color:rgba(239,68,68,0.3);color:var(--red);}
+.btn.primary:hover{background:#2C449E;border-color:#2C449E;}
+.btn.danger{background:var(--red-dim);border-color:rgba(216,68,70,0.34);color:var(--red);}
 .page{display:none;flex:1;overflow:hidden;flex-direction:column;}
 .page.active{display:flex;}
 .content{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:20px;}
@@ -738,7 +738,7 @@ export default function Dashboard() {
                 fontFamily: "DM Sans, sans-serif",
             },
             theme: { mode: theme === "dark" ? "dark" : "light" },
-            colors: ["#3B82F6", "#22C55E"],
+            colors: ["#3651BE", "#84A9DB"],
             plotOptions: {
                 bar: {
                     horizontal: false,
@@ -755,7 +755,7 @@ export default function Dashboard() {
                 labels: {
                     style: {
                         colors: CHART.map(() =>
-                            theme === "dark" ? "#6B7385" : "#9CA3AF",
+                            theme === "dark" ? "#A1A1A1" : "#646464",
                         ),
                         fontFamily: "DM Mono, monospace",
                         fontSize: "11px",
@@ -779,7 +779,7 @@ export default function Dashboard() {
                 horizontalAlign: "left",
                 fontSize: "13px",
                 labels: {
-                    colors: theme === "dark" ? "#9BA3B5" : "#4B5563",
+                    colors: theme === "dark" ? "#CFCFD0" : "#373232",
                 },
                 markers: {
                     size: 9,
