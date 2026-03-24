@@ -92,12 +92,14 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text-1);font-fam
 .topbar{height:56px;display:flex;align-items:center;gap:12px;padding:0 24px;border-bottom:1px solid var(--border);background:var(--bg-2);flex-shrink:0;}
 .topbar-title{font-size:17px;font-weight:600;letter-spacing:-.02em;flex:1;}
 .topbar-actions{display:flex;align-items:center;gap:8px;}
-.search-wrap{display:flex;align-items:center;gap:8px;background:var(--bg-3);border:1px solid var(--border);border-radius:7px;padding:0 12px;height:34px;}
+.search-wrap{display:flex;align-items:center;gap:8px;background:var(--bg-3);border:1px solid var(--border);border-radius:7px;padding:0 12px;height:34px;transition:border-color var(--transition);}
 .search-wrap:focus-within{border-color:var(--blue);}
+.search-wrap svg{width:14px;height:14px;color:var(--text-3);flex-shrink:0;}
 .search-wrap input{background:none;border:none;outline:none;font-family:inherit;font-size:13px;color:var(--text-1);}
 .search-wrap input::placeholder{color:var(--text-3);}
-.icon-btn{width:34px;height:34px;border-radius:7px;background:var(--bg-3);border:1px solid var(--border);display:grid;place-items:center;cursor:pointer;color:var(--text-2);}
+.icon-btn{width:34px;height:34px;border-radius:7px;background:var(--bg-3);border:1px solid var(--border);display:grid;place-items:center;cursor:pointer;color:var(--text-2);transition:background var(--transition),color var(--transition);}
 .icon-btn:hover{background:var(--bg-4);color:var(--text-1);}
+.icon-btn svg{width:16px;height:16px;}
 .btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border-strong);background:var(--bg-3);color:var(--text-1);transition:background var(--transition),border-color var(--transition);}
 .btn:hover{background:var(--bg-4);}
 .btn.primary{background:var(--blue);border-color:var(--blue);color:white;}
@@ -144,11 +146,15 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text-1);font-fam
 .badge.transit{background:var(--blue-dim);color:var(--blue);} .badge.delivered{background:var(--green-dim);color:var(--green);} .badge.pending{background:var(--amber-dim);color:var(--amber);} .badge.delayed{background:var(--red-dim);color:var(--red);} .badge.customs{background:var(--purple-dim);color:var(--purple);}
 .row-menu{display:none;position:absolute;right:0;top:34px;background:var(--bg-2);border:1px solid var(--border-strong);border-radius:8px;z-index:30;min-width:148px;box-shadow:0 8px 24px rgba(0,0,0,0.3);overflow:hidden;padding:4px;} .row-menu.open{display:block;}
 .row-menu-item{padding:7px 10px;font-size:12.5px;border-radius:5px;cursor:pointer;color:var(--text-2);border:none;background:transparent;width:100%;text-align:left;} .row-menu-item:hover{background:var(--bg-3);color:var(--text-1);} .row-menu-item.green{color:var(--green);} .row-menu-item.red{color:var(--red);}
+.row-menu-divider{height:1px;background:var(--border);margin:4px 0;}
 .pagination{display:flex;align-items:center;gap:6px;padding:14px 16px;border-top:1px solid var(--border);} .page-info{font-size:12.5px;color:var(--text-3);flex:1;} .page-btn{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--bg-3);color:var(--text-2);cursor:pointer;display:grid;place-items:center;font-size:12.5px;font-weight:500;transition:background var(--transition),color var(--transition);} .page-btn:hover:not(:disabled){background:var(--bg-4);color:var(--text-1);} .page-btn.active{background:var(--blue);border-color:var(--blue);color:white;} .page-btn:disabled{opacity:.35;cursor:not-allowed;}
+.page-btn svg{width:12px;height:12px;}
 .bulk-bar{display:none;padding:10px 16px;border-top:1px solid var(--border);background:var(--blue-dim);align-items:center;gap:10px;} .bulk-bar.show{display:flex;}
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:56px 24px;color:var(--text-3);gap:12px;}
 .detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:50;opacity:0;pointer-events:none;transition:opacity var(--transition);} .detail-overlay.open{opacity:1;pointer-events:all;}
 .detail-panel{position:fixed;top:0;right:0;height:100vh;width:480px;max-width:95vw;background:var(--bg-2);border-left:1px solid var(--border);z-index:51;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);} .detail-panel.open{transform:translateX(0);} .dp-header{height:56px;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);gap:10px;} .dp-id{font-family:'DM Mono',monospace;font-size:13px;color:var(--blue);font-weight:500;} .dp-body{flex:1;overflow-y:auto;padding:20px;}
+.dp-close{margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text-3);display:grid;place-items:center;width:28px;height:28px;border-radius:6px;transition:background var(--transition),color var(--transition);}
+.dp-close:hover{background:var(--bg-3);color:var(--text-1);}
 .tl-item{display:flex;gap:12px;position:relative;} .tl-item:not(:last-child)::before{content:'';position:absolute;left:7px;top:18px;bottom:-4px;width:1px;background:var(--border);} .tl-dot{width:15px;height:15px;border-radius:50%;flex-shrink:0;margin-top:3px;border:2px solid;} .tl-dot.done{background:var(--green);border-color:var(--green);} .tl-dot.cur{background:var(--blue);border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim);} .tl-dot.pend{background:var(--bg-3);border-color:var(--border-strong);} .tl-body{flex:1;padding-bottom:14px;}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;display:none;align-items:center;justify-content:center;padding:24px;} .modal-overlay.open{display:flex;}
 .modal{background:var(--bg-2);border:1px solid var(--border-strong);border-radius:12px;width:560px;max-width:100%;max-height:90vh;display:flex;flex-direction:column;} .modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;} .modal-title{font-size:16px;font-weight:600;flex:1;} .modal-body{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:14px;} .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
@@ -1307,21 +1313,6 @@ export default function Dashboard() {
                                     }}
                                 />
                             </button>
-                            <button
-                                className="btn primary"
-                                onClick={openCreate}
-                            >
-                                <svg
-                                    viewBox="0 0 14 14"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="1.8"
-                                    strokeLinecap="round"
-                                >
-                                    <path d="M7 1v12M1 7h12" />
-                                </svg>
-                                New Shipment
-                            </button>
                         </div>
                     </header>
 
@@ -1608,15 +1599,45 @@ export default function Dashboard() {
                                         className={`btn ${filterOpen ? "active-filter" : ""}`}
                                         onClick={() => setFilterOpen((v) => !v)}
                                     >
+                                        <svg
+                                            viewBox="0 0 14 14"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.6"
+                                            strokeLinecap="round"
+                                            style={{ width: 14, height: 14 }}
+                                        >
+                                            <path d="M1 3h12M3 7h8M5 11h4" />
+                                        </svg>
                                         Filters
                                     </button>
                                     <button className="btn" onClick={exportCsv}>
+                                        <svg
+                                            viewBox="0 0 14 14"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.6"
+                                            strokeLinecap="round"
+                                            style={{ width: 14, height: 14 }}
+                                        >
+                                            <path d="M7 1v8M4 6l3 3 3-3M1 10v2a1 1 0 001 1h10a1 1 0 001-1v-2" />
+                                        </svg>
                                         Export
                                     </button>
                                     <button
                                         className="btn primary"
                                         onClick={openCreate}
                                     >
+                                        <svg
+                                            viewBox="0 0 14 14"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                            strokeLinecap="round"
+                                            style={{ width: 14, height: 14 }}
+                                        >
+                                            <path d="M7 1v12M1 7h12" />
+                                        </svg>
                                         New
                                     </button>
                                 </div>
@@ -2001,10 +2022,35 @@ export default function Dashboard() {
                                                                     );
                                                                 }}
                                                             >
-                                                                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" style={{ width: 14, height: 14 }}>
-                                                                    <circle cx="7" cy="2.5" r="0.6" fill="currentColor" />
-                                                                    <circle cx="7" cy="7" r="0.6" fill="currentColor" />
-                                                                    <circle cx="7" cy="11.5" r="0.6" fill="currentColor" />
+                                                                <svg
+                                                                    viewBox="0 0 14 14"
+                                                                    fill="none"
+                                                                    stroke="currentColor"
+                                                                    strokeWidth="1.8"
+                                                                    strokeLinecap="round"
+                                                                    style={{
+                                                                        width: 14,
+                                                                        height: 14,
+                                                                    }}
+                                                                >
+                                                                    <circle
+                                                                        cx="7"
+                                                                        cy="2.5"
+                                                                        r="0.6"
+                                                                        fill="currentColor"
+                                                                    />
+                                                                    <circle
+                                                                        cx="7"
+                                                                        cy="7"
+                                                                        r="0.6"
+                                                                        fill="currentColor"
+                                                                    />
+                                                                    <circle
+                                                                        cx="7"
+                                                                        cy="11.5"
+                                                                        r="0.6"
+                                                                        fill="currentColor"
+                                                                    />
                                                                 </svg>
                                                             </button>
                                                             <div
@@ -2048,14 +2094,7 @@ export default function Dashboard() {
                                                                     Mark
                                                                     Delivered
                                                                 </button>
-                                                                <div
-                                                                    style={{
-                                                                        height: 1,
-                                                                        background:
-                                                                            "var(--border)",
-                                                                        margin: "4px 0",
-                                                                    }}
-                                                                />
+                                                                <div className="row-menu-divider" />
                                                                 <button
                                                                     className="row-menu-item red"
                                                                     onClick={() =>
@@ -2139,7 +2178,15 @@ export default function Dashboard() {
                                                 )
                                             }
                                         >
-                                            ‹
+                                            <svg
+                                                viewBox="0 0 12 12"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.8"
+                                                strokeLinecap="round"
+                                            >
+                                                <path d="M7.5 2L3.5 6l4 4" />
+                                            </svg>
                                         </button>
                                         {pageRange(curPage, totalPages).map(
                                             (p, i) =>
@@ -2179,7 +2226,15 @@ export default function Dashboard() {
                                                 )
                                             }
                                         >
-                                            ›
+                                            <svg
+                                                viewBox="0 0 12 12"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.8"
+                                                strokeLinecap="round"
+                                            >
+                                                <path d="M4.5 2l4 4-4 4" />
+                                            </svg>
                                         </button>
                                     </div>
                                 )}
@@ -2217,11 +2272,17 @@ export default function Dashboard() {
                                 Delete
                             </button>
                             <button
-                                className="icon-btn"
-                                style={{ width: 28, height: 28 }}
+                                className="dp-close"
                                 onClick={() => setDetailId(null)}
                             >
-                                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" style={{ width: 16, height: 16 }}>
+                                <svg
+                                    viewBox="0 0 16 16"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="1.8"
+                                    strokeLinecap="round"
+                                    style={{ width: 16, height: 16 }}
+                                >
                                     <path d="M4 4l8 8M12 4l-8 8" />
                                 </svg>
                             </button>
@@ -2277,6 +2338,91 @@ export default function Dashboard() {
                                             }}
                                         >
                                             {detail.originCountry}
+                                        </div>
+                                    </div>
+                                    <div style={{ flex: 2, padding: "0 8px" }}>
+                                        <div
+                                            style={{
+                                                position: "relative",
+                                                height: 2,
+                                                background:
+                                                    "var(--border-strong)",
+                                                borderRadius: 1,
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    position: "absolute",
+                                                    left: 0,
+                                                    top: 0,
+                                                    height: "100%",
+                                                    width:
+                                                        detail.status ===
+                                                        "delivered"
+                                                            ? "100%"
+                                                            : detail.status ===
+                                                                "customs"
+                                                              ? "78%"
+                                                              : detail.status ===
+                                                                  "delayed"
+                                                                ? "35%"
+                                                                : detail.status ===
+                                                                    "pending"
+                                                                  ? "8%"
+                                                                  : "52%",
+                                                    background: "var(--blue)",
+                                                    borderRadius: 1,
+                                                    transition:
+                                                        "width .6s ease",
+                                                }}
+                                            />
+                                            <div
+                                                style={{
+                                                    position: "absolute",
+                                                    top: "50%",
+                                                    left:
+                                                        detail.status ===
+                                                        "delivered"
+                                                            ? "100%"
+                                                            : detail.status ===
+                                                                "customs"
+                                                              ? "78%"
+                                                              : detail.status ===
+                                                                  "delayed"
+                                                                ? "35%"
+                                                                : detail.status ===
+                                                                    "pending"
+                                                                  ? "8%"
+                                                                  : "52%",
+                                                    transform:
+                                                        "translate(-50%,-50%)",
+                                                    width: 10,
+                                                    height: 10,
+                                                    borderRadius: "50%",
+                                                    background: "var(--blue)",
+                                                    border: "2px solid var(--bg-3)",
+                                                }}
+                                            />
+                                        </div>
+                                        <div
+                                            style={{
+                                                textAlign: "center",
+                                                marginTop: 8,
+                                            }}
+                                        >
+                                            <span
+                                                style={{
+                                                    background: "var(--bg-2)",
+                                                    border: "1px solid var(--border)",
+                                                    padding: "3px 8px",
+                                                    borderRadius: 20,
+                                                    fontSize: 11,
+                                                    color: "var(--text-2)",
+                                                }}
+                                            >
+                                                {modeIcon(detail.mode)}{" "}
+                                                {detail.mode}
+                                            </span>
                                         </div>
                                     </div>
                                     <div
@@ -2455,6 +2601,53 @@ export default function Dashboard() {
                                     </div>
                                 ))}
                             </div>
+
+                            <div style={{ marginBottom: 24 }}>
+                                <div
+                                    style={{
+                                        fontSize: 11,
+                                        fontWeight: 600,
+                                        letterSpacing: ".07em",
+                                        textTransform: "uppercase",
+                                        color: "var(--text-3)",
+                                        marginBottom: 10,
+                                    }}
+                                >
+                                    Update Status
+                                </div>
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        gap: 6,
+                                        flexWrap: "wrap",
+                                    }}
+                                >
+                                    {(
+                                        [
+                                            "transit",
+                                            "pending",
+                                            "customs",
+                                            "delayed",
+                                            "delivered",
+                                        ] as const
+                                    ).map((st) => (
+                                        <button
+                                            key={st}
+                                            className={`btn ${detail.status === st ? "active-filter" : ""}`}
+                                            style={{
+                                                fontSize: 12,
+                                                padding: "5px 12px",
+                                            }}
+                                            onClick={() => {
+                                                quickStatus(detail.id, st);
+                                                setDetailId(detail.id);
+                                            }}
+                                        >
+                                            {statusLabel(st)}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </>
                 )}
@@ -2471,7 +2664,14 @@ export default function Dashboard() {
                             style={{ width: 28, height: 28 }}
                             onClick={() => setModalOpen(false)}
                         >
-                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" style={{ width: 16, height: 16 }}>
+                            <svg
+                                viewBox="0 0 16 16"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                strokeLinecap="round"
+                                style={{ width: 16, height: 16 }}
+                            >
                                 <path d="M4 4l8 8M12 4l-8 8" />
                             </svg>
                         </button>
@@ -2821,7 +3021,14 @@ function StatCard({
                     style={{ background: `var(--${kind}-dim)`, color }}
                 >
                     {icon === "truck" && (
-                        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" style={{ width: 18, height: 18 }}>
+                        <svg
+                            viewBox="0 0 18 18"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.7"
+                            strokeLinecap="round"
+                            style={{ width: 18, height: 18 }}
+                        >
                             <rect x="1" y="5" width="12" height="9" rx="1.5" />
                             <path d="M13 8l3 2v4h-3V8z" />
                             <circle cx="4.5" cy="14" r="1.5" />
@@ -2830,25 +3037,53 @@ function StatCard({
                         </svg>
                     )}
                     {icon === "check" && (
-                        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" style={{ width: 18, height: 18 }}>
+                        <svg
+                            viewBox="0 0 18 18"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.7"
+                            strokeLinecap="round"
+                            style={{ width: 18, height: 18 }}
+                        >
                             <path d="M2 9l5 5 9-9" />
                         </svg>
                     )}
                     {icon === "clock" && (
-                        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" style={{ width: 18, height: 18 }}>
+                        <svg
+                            viewBox="0 0 18 18"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.7"
+                            strokeLinecap="round"
+                            style={{ width: 18, height: 18 }}
+                        >
                             <circle cx="9" cy="9" r="7" />
                             <path d="M9 5v4l2.5 2.5" />
                         </svg>
                     )}
                     {icon === "calendar" && (
-                        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" style={{ width: 18, height: 18 }}>
+                        <svg
+                            viewBox="0 0 18 18"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.7"
+                            strokeLinecap="round"
+                            style={{ width: 18, height: 18 }}
+                        >
                             <rect x="2" y="4" width="14" height="11" rx="1.5" />
                             <path d="M2 8h14" />
                             <path d="M6 2v4M12 2v4" />
                         </svg>
                     )}
                     {icon === "alert" && (
-                        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" style={{ width: 18, height: 18 }}>
+                        <svg
+                            viewBox="0 0 18 18"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.7"
+                            strokeLinecap="round"
+                            style={{ width: 18, height: 18 }}
+                        >
                             <path d="M9 2L1.5 15h15L9 2z" />
                             <path d="M9 7v4M9 13.5v.5" />
                         </svg>
