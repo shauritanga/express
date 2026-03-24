@@ -85,10 +85,12 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text-1);font-fam
 .sidebar-nav{flex:1;padding:12px 8px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;overflow-x:hidden;}
 .nav-section-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);padding:8px 8px 4px;white-space:nowrap;overflow:hidden;}
 .sidebar.collapsed .nav-section-label{opacity:0;}
-.nav-item{display:flex;align-items:center;gap:10px;padding:8px;border-radius:7px;cursor:pointer;color:var(--text-2);transition:background var(--transition),color var(--transition);white-space:nowrap;overflow:hidden;border:none;background:transparent;text-align:left;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px;border-radius:7px;cursor:pointer;color:var(--text-2);transition:background var(--transition),color var(--transition);white-space:nowrap;overflow:hidden;border:none;background:transparent;text-align:left;position:relative;}
 .nav-item:hover{background:var(--bg-3);color:var(--text-1);}
 .nav-item.active{background:var(--blue-dim);color:var(--blue);}
 .nav-icon{width:18px;height:18px;flex-shrink:0;}
+.floating-nav-tooltip{position:fixed;left:0;top:0;transform:translateY(-50%) translateX(-4px);background:var(--bg-3);border:1px solid var(--border-strong);border-radius:6px;padding:5px 8px;font-size:12px;font-weight:500;color:var(--text-1);white-space:nowrap;opacity:0;pointer-events:none;box-shadow:0 8px 18px rgba(0,0,0,.24);transition:opacity var(--transition),transform var(--transition);z-index:300;}
+.floating-nav-tooltip.show{opacity:1;transform:translateY(-50%) translateX(0);}
 .nav-label{font-size:13.5px;font-weight:500;transition:opacity var(--transition);}
 .sidebar.collapsed .nav-label{opacity:0;}
 .nav-badge{margin-left:auto;font-size:10px;font-weight:600;background:var(--blue);color:white;padding:1px 6px;border-radius:20px;}
@@ -705,6 +707,12 @@ export default function Dashboard() {
     const [toasts, setToasts] = useState<
         Array<{ id: number; msg: string; type: ToastType }>
     >([]);
+    const [navTip, setNavTip] = useState({
+        text: "",
+        x: 0,
+        y: 0,
+        show: false,
+    });
 
     const PER = 10;
     const deliveredChart = useMemo(
@@ -870,6 +878,32 @@ export default function Dashboard() {
         setConfirmMsg(msg);
         setConfirmAction(() => action);
         setConfirmOpen(true);
+    };
+
+    const onSidebarNavHover = (e: React.MouseEvent<HTMLElement>) => {
+        if (!sidebarCollapsed) return;
+        const target = e.target as HTMLElement;
+        const navItem = target.closest(".nav-item") as HTMLElement | null;
+        if (!navItem) {
+            setNavTip((p) => ({ ...p, show: false }));
+            return;
+        }
+        const text = navItem.getAttribute("data-tip") || "";
+        if (!text) {
+            setNavTip((p) => ({ ...p, show: false }));
+            return;
+        }
+        const rect = navItem.getBoundingClientRect();
+        setNavTip({
+            text,
+            x: rect.right + 10,
+            y: rect.top + rect.height / 2,
+            show: true,
+        });
+    };
+
+    const onSidebarNavLeave = () => {
+        setNavTip((p) => ({ ...p, show: false }));
     };
 
     const toggleSort = (col: keyof Shipment) => {
@@ -1079,11 +1113,17 @@ export default function Dashboard() {
                         </div>
                         <span className="logo-text">CargoOS</span>
                     </div>
-                    <nav className="sidebar-nav">
+                    <nav
+                        className="sidebar-nav"
+                        onMouseOver={onSidebarNavHover}
+                        onMouseMove={onSidebarNavHover}
+                        onMouseLeave={onSidebarNavLeave}
+                    >
                         <div className="nav-section-label">Operations</div>
                         <button
                             className={`nav-item ${page === "dashboard" ? "active" : ""}`}
                             onClick={() => setPage("dashboard")}
+                            data-tip="Dashboard"
                         >
                             <svg
                                 className="nav-icon"
@@ -1127,6 +1167,7 @@ export default function Dashboard() {
                         <button
                             className={`nav-item ${page === "shipments" ? "active" : ""}`}
                             onClick={() => setPage("shipments")}
+                            data-tip="Shipments"
                         >
                             <svg
                                 className="nav-icon"
@@ -1148,6 +1189,7 @@ export default function Dashboard() {
                         <button
                             className="nav-item"
                             onClick={() => setPage("dashboard")}
+                            data-tip="Fleet"
                         >
                             <svg
                                 className="nav-icon"
@@ -1174,6 +1216,7 @@ export default function Dashboard() {
                         <button
                             className="nav-item"
                             onClick={() => setPage("dashboard")}
+                            data-tip="Routes"
                         >
                             <svg
                                 className="nav-icon"
@@ -1192,6 +1235,7 @@ export default function Dashboard() {
                         <button
                             className="nav-item"
                             onClick={() => setPage("dashboard")}
+                            data-tip="Warehouses"
                         >
                             <svg
                                 className="nav-icon"
@@ -1215,6 +1259,7 @@ export default function Dashboard() {
                         <button
                             className="nav-item"
                             onClick={() => setPage("dashboard")}
+                            data-tip="Customers"
                         >
                             <svg
                                 className="nav-icon"
@@ -1232,6 +1277,7 @@ export default function Dashboard() {
                         <button
                             className="nav-item"
                             onClick={() => setPage("dashboard")}
+                            data-tip="Billing"
                         >
                             <svg
                                 className="nav-icon"
@@ -1256,6 +1302,7 @@ export default function Dashboard() {
                         <button
                             className="nav-item"
                             onClick={() => setPage("dashboard")}
+                            data-tip="Reports"
                         >
                             <svg
                                 className="nav-icon"
@@ -1278,6 +1325,7 @@ export default function Dashboard() {
                         <button
                             className="nav-item"
                             onClick={() => setPage("dashboard")}
+                            data-tip="Settings"
                         >
                             <svg
                                 className="nav-icon"
@@ -3507,6 +3555,13 @@ export default function Dashboard() {
                         <span>{t.msg}</span>
                     </div>
                 ))}
+            </div>
+
+            <div
+                className={`floating-nav-tooltip ${navTip.show ? "show" : ""}`}
+                style={{ left: navTip.x, top: navTip.y }}
+            >
+                {navTip.text}
             </div>
         </>
     );
