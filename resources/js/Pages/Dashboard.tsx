@@ -1111,7 +1111,7 @@ export default function Dashboard() {
                                 />
                             </svg>
                         </div>
-                        <span className="logo-text">CargoOS</span>
+                        <span className="logo-text">RTEXPRESS</span>
                     </div>
                     <nav
                         className="sidebar-nav"
