@@ -5,7 +5,14 @@ import ReactApexChart from "react-apexcharts";
 
 type Status = "transit" | "delivered" | "pending" | "delayed" | "customs";
 type Mode = "Sea" | "Air" | "Road" | "Rail";
-type PageName = "dashboard" | "shipments";
+type PageName = "dashboard" | "shipments" | "bookings";
+type BookingStatus =
+    | "new"
+    | "reviewing"
+    | "approved"
+    | "converted"
+    | "rejected";
+type BookingUrgency = "high" | "medium" | "low";
 
 type Shipment = {
     id: string;
@@ -25,6 +32,27 @@ type Shipment = {
     created: string;
 };
 
+type Booking = {
+    id: string;
+    customer: string;
+    origin: string;
+    destination: string;
+    mode: Mode;
+    type: string;
+    weight: number;
+    containers: number;
+    urgency: BookingUrgency;
+    status: BookingStatus;
+    received: string;
+    contact: string;
+    email: string;
+    phone: string;
+    message: string;
+    convertedTo: string | null;
+    assignedTo: string | null;
+    notes: string;
+};
+
 type ToastType = "success" | "error" | "info";
 
 type FormState = {
@@ -41,6 +69,19 @@ type FormState = {
     cost: string;
     container: string;
     notes: string;
+};
+
+type BookingConvertForm = {
+    origin: string;
+    destination: string;
+    mode: Mode;
+    eta: string;
+    customer: string;
+    weight: string;
+    type: string;
+    containers: string;
+    contact: string;
+    email: string;
 };
 
 const CSS = `
@@ -110,6 +151,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text-1);font-fam
 .search-wrap svg{width:14px;height:14px;color:var(--text-3);flex-shrink:0;}
 .search-wrap input{background:none;border:none;outline:none;font-family:inherit;font-size:13px;color:var(--text-1);}
 .search-wrap input::placeholder{color:var(--text-3);}
+.sh-select{height:34px;padding:0 10px;border-radius:7px;background:var(--bg-3);border:1px solid var(--border);color:var(--text-1);font-family:inherit;font-size:13px;cursor:pointer;outline:none;appearance:none;padding-right:28px;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B7385' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;}
 .icon-btn{width:34px;height:34px;border-radius:7px;background:var(--bg-3);border:1px solid var(--border);display:grid;place-items:center;cursor:pointer;color:var(--text-2);transition:background var(--transition),color var(--transition);}
 .icon-btn:hover{background:var(--bg-4);color:var(--text-1);}
 .icon-btn svg{width:16px;height:16px;}
@@ -173,6 +215,20 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text-1);font-fam
 .data-table tbody tr{border-bottom:1px solid var(--border);transition:background var(--transition);cursor:pointer;} .data-table tbody tr:hover{background:var(--bg-3);} .data-table tbody tr.row-sel{background:var(--blue-dim);} .data-table td{padding:11px 16px;font-size:13px;vertical-align:middle;}
 .td-mono{font-family:'DM Mono',monospace;font-size:12px;color:var(--blue);font-weight:500;} .badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:500;padding:3px 9px;border-radius:20px;white-space:nowrap;} .badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
 .badge.transit{background:var(--blue-dim);color:var(--blue);} .badge.delivered{background:var(--green-dim);color:var(--green);} .badge.pending{background:var(--amber-dim);color:var(--amber);} .badge.delayed{background:var(--red-dim);color:var(--red);} .badge.customs{background:var(--purple-dim);color:var(--purple);}
+.badge.new{background:var(--blue-dim);color:var(--blue);} .badge.reviewing{background:var(--purple-dim);color:var(--purple);} .badge.approved{background:var(--green-dim);color:var(--green);} .badge.converted{background:rgba(115,140,191,.14);color:var(--green);border:1px solid rgba(115,140,191,.3);} .badge.rejected{background:var(--red-dim);color:var(--red);}
+.bk-grid-scroll{flex:1;overflow-y:auto;padding:20px 24px;}
+.bk-grid-body{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;align-content:start;}
+.bk-card{background:var(--bg-2);border:1px solid var(--border);border-radius:9px;padding:14px;cursor:pointer;transition:border-color var(--transition),box-shadow var(--transition);} .bk-card:hover{border-color:var(--border-strong);box-shadow:0 2px 12px rgba(0,0,0,.2);} .bk-card.selected{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-dim);}
+.bk-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;} .bk-card-id{font-family:'DM Mono',monospace;font-size:11px;color:var(--blue);font-weight:500;} .bk-card-time{font-size:11px;color:var(--text-3);} .bk-card-name{font-size:13px;font-weight:600;margin-bottom:3px;} .bk-card-route{font-size:12px;color:var(--text-2);display:flex;align-items:center;gap:4px;}
+.bk-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);} .bk-urgency{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.bk-table-wrap{flex:1;overflow-x:auto;} .bk-table-wrap::-webkit-scrollbar{height:6px;} .bk-table-wrap::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px;} .bk-table{width:100%;border-collapse:collapse;min-width:700px;} .bk-table thead{position:sticky;top:0;z-index:2;} .bk-table thead th{background:var(--bg-2);text-align:left;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);padding:10px 16px;border-bottom:1px solid var(--border);white-space:nowrap;} .bk-table tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background var(--transition);} .bk-table tbody tr:last-child{border-bottom:none;} .bk-table tbody tr:hover{background:var(--bg-3);} .bk-table tbody tr.bk-selected-row{background:var(--blue-dim);} .bk-table td{padding:11px 16px;font-size:13px;vertical-align:middle;} .bk-table td.mono{font-family:'DM Mono',monospace;font-size:12px;color:var(--blue);font-weight:500;} .bk-table td .text-muted{font-size:11px;color:var(--text-3);margin-top:1px;}
+.bk-detail{position:fixed;top:0;right:0;bottom:0;width:0;min-width:0;overflow:hidden;border-left:1px solid var(--border);background:var(--bg-2);transition:width var(--transition),min-width var(--transition);display:flex;flex-direction:column;z-index:50;box-shadow:-4px 0 24px rgba(0,0,0,0.18);} .bk-detail.open{width:400px;min-width:400px;} .bk-detail-scroll{flex:1;overflow-y:auto;}
+.view-toggle{display:flex;gap:2px;background:var(--bg-3);border:1px solid var(--border);border-radius:7px;padding:3px;} .view-btn{width:30px;height:28px;border-radius:5px;display:grid;place-items:center;cursor:pointer;color:var(--text-3);transition:all var(--transition);border:none;background:none;} .view-btn.active{background:var(--bg-2);color:var(--text-1);box-shadow:0 1px 3px rgba(0,0,0,.3);} .view-btn svg{width:14px;height:14px;}
+.bk-pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-top:1px solid var(--border);background:var(--bg-2);flex-shrink:0;font-size:12.5px;color:var(--text-3);}
+.sh-checkbox{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--border-strong);background:transparent;cursor:pointer;accent-color:var(--blue);}
+.dp-section{padding:16px 20px;border-bottom:1px solid var(--border);} .dp-section:last-child{border-bottom:none;} .dp-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);margin-bottom:12px;} .dp-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px;} .dp-row:last-child{margin-bottom:0;} .dp-key{font-size:12.5px;color:var(--text-3);flex-shrink:0;} .dp-val{font-size:12.5px;color:var(--text-1);font-weight:500;text-align:right;} .dp-val.mono{font-family:'DM Mono',monospace;font-size:12px;}
+.timeline{display:flex;flex-direction:column;gap:0;padding:16px 20px;} .tl-dot.active{background:var(--blue-dim);border-color:var(--blue);} .tl-dot.pending{background:var(--bg-3);border-color:var(--border-strong);} .tl-dot.cur{background:var(--blue-dim);border-color:var(--blue);} .tl-dot.pend{background:var(--bg-3);border-color:var(--border-strong);}
+.pag-btns{display:flex;gap:4px;} .pag-btn{width:30px;height:30px;border-radius:6px;background:var(--bg-3);border:1px solid var(--border);color:var(--text-2);display:grid;place-items:center;cursor:pointer;font-size:12.5px;font-family:inherit;font-weight:500;transition:all var(--transition);} .pag-btn:hover{background:var(--bg-4);color:var(--text-1);} .pag-btn.active{background:var(--blue);border-color:var(--blue);color:#fff;} .pag-btn:disabled{opacity:.4;cursor:not-allowed;} .pag-btn svg{width:12px;height:12px;}
 .row-menu{display:none;position:absolute;right:0;top:34px;background:var(--bg-2);border:1px solid var(--border-strong);border-radius:8px;z-index:30;min-width:148px;box-shadow:0 8px 24px rgba(0,0,0,0.3);overflow:hidden;padding:4px;} .row-menu.open{display:block;}
 .row-menu-item{padding:7px 10px;font-size:12.5px;border-radius:5px;cursor:pointer;color:var(--text-2);border:none;background:transparent;width:100%;text-align:left;} .row-menu-item:hover{background:var(--bg-3);color:var(--text-1);} .row-menu-item.green{color:var(--green);} .row-menu-item.red{color:var(--red);}
 .row-menu-divider{height:1px;background:var(--border);margin:4px 0;}
@@ -186,8 +242,8 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text-1);font-fam
 .dp-close:hover{background:var(--bg-3);color:var(--text-1);}
 .tl-item{display:flex;gap:12px;position:relative;} .tl-item:not(:last-child)::before{content:'';position:absolute;left:7px;top:18px;bottom:-4px;width:1px;background:var(--border);} .tl-dot{width:15px;height:15px;border-radius:50%;flex-shrink:0;margin-top:3px;border:2px solid;} .tl-dot.done{background:var(--green);border-color:var(--green);} .tl-dot.cur{background:var(--blue);border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim);} .tl-dot.pend{background:var(--bg-3);border-color:var(--border-strong);} .tl-body{flex:1;padding-bottom:14px;}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;display:none;align-items:center;justify-content:center;padding:24px;overflow:auto;} .modal-overlay.open{display:flex;}
-.modal{background:var(--bg-2);border:1px solid var(--border-strong);border-radius:12px;width:560px;max-width:100%;max-height:72vh;margin:auto;display:flex;flex-direction:column;} .modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;} .modal-title{font-size:16px;font-weight:600;flex:1;} .modal-body{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:14px;} .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;} .form-group{display:flex;flex-direction:column;gap:5px;} .form-label{font-size:12px;font-weight:500;color:var(--text-2);} .form-section-title{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);padding-top:4px;border-top:1px solid var(--border);}
+.modal{background:var(--bg-2);border:1px solid var(--border-strong);border-radius:12px;width:560px;max-width:100%;max-height:72vh;margin:auto;display:flex;flex-direction:column;} .modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;} .modal-title{font-size:16px;font-weight:600;flex:1;} .modal-body{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px;} .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;} .form-group{display:flex;flex-direction:column;gap:6px;} .form-label{font-size:12px;font-weight:600;color:var(--text-2);} .form-section-title{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);padding-top:4px;border-top:1px solid var(--border);} .form-divider{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);padding-bottom:4px;border-bottom:1px solid var(--border);}
 .confirm-modal{background:var(--bg-2);border:1px solid var(--border-strong);border-radius:12px;width:380px;max-width:100%;padding:24px;} .confirm-modal h3{font-size:15px;font-weight:600;margin:0 0 8px;} .confirm-modal p{font-size:13px;color:var(--text-2);line-height:1.6;margin:0 0 20px;}
 .toast-wrap{position:fixed;bottom:24px;right:24px;z-index:200;display:flex;flex-direction:column;gap:8px;} .toast{background:var(--bg-3);border:1px solid var(--border-strong);border-radius:8px;padding:11px 15px;font-size:13px;color:var(--text-1);display:flex;align-items:center;gap:10px;min-width:240px;} .toast.success{border-left:3px solid var(--green);} .toast.error{border-left:3px solid var(--red);} .toast.info{border-left:3px solid var(--blue);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
@@ -640,6 +696,104 @@ const COUNTRIES = [
     "Thailand",
 ];
 
+const BK_CUSTOMERS = [
+    "Horizon Trade Ltd",
+    "Pacific Rim Co.",
+    "AlphaGoods GmbH",
+    "Meridian Imports",
+    "BlueStar Exports",
+    "Nova Freight Inc",
+    "Stellar Commerce",
+    "Atlas Logistics",
+    "Caspian Cargo",
+    "Summit Trade",
+];
+
+const BK_ROUTES: Array<readonly [string, string]> = [
+    ["Nairobi", "London"],
+    ["Dubai", "Chicago"],
+    ["Shanghai", "Hamburg"],
+    ["Singapore", "Rotterdam"],
+    ["Lagos", "Antwerp"],
+    ["Dar es Salaam", "Mumbai"],
+    ["Casablanca", "Barcelona"],
+    ["Jakarta", "Frankfurt"],
+    ["Manila", "Long Beach"],
+    ["Karachi", "Amsterdam"],
+];
+
+const BK_TYPES = [
+    "Electronics",
+    "General",
+    "Perishable",
+    "Hazardous",
+    "Automotive",
+    "Textiles",
+    "Machinery",
+];
+
+const BK_NOTES = [
+    "Fragile items - handle with care",
+    "Temperature controlled required",
+    "Hazardous documentation enclosed",
+    "Pre-clearance paperwork attached",
+    "Consolidation with existing booking preferred",
+    "Express delivery required - client deadline",
+    "Partial shipment, remainder to follow",
+];
+
+const BK_CONTACTS = [
+    "Maria Santos",
+    "James Okonkwo",
+    "Li Wei",
+    "Sara Hassan",
+    "Tom Muller",
+];
+
+function genInitialBookings(n = 22): Booking[] {
+    return Array.from({ length: n }, (_, i) => {
+        const [origin, destination] = BK_ROUTES[i % BK_ROUTES.length];
+        const customer = BK_CUSTOMERS[i % BK_CUSTOMERS.length];
+        const status: BookingStatus =
+            i < 3
+                ? "new"
+                : i < 6
+                  ? "reviewing"
+                  : i < 10
+                    ? "approved"
+                    : i < 16
+                      ? "converted"
+                      : "rejected";
+        const urgency: BookingUrgency =
+            i % 3 === 0 ? "high" : i % 3 === 1 ? "medium" : "low";
+        return {
+            id: `BKG-${String(2000 + i).padStart(5, "0")}`,
+            customer,
+            origin,
+            destination,
+            mode: ["Sea", "Air", "Road", "Rail"][i % 4] as Mode,
+            type: BK_TYPES[i % BK_TYPES.length],
+            weight: 350 + i * 410,
+            containers: (i % 5) + 1,
+            urgency,
+            status,
+            received: new Date(
+                Date.now() - (i % 15) * 24 * 60 * 60 * 1000,
+            ).toISOString(),
+            contact: BK_CONTACTS[i % BK_CONTACTS.length],
+            email: `contact${i + 1}@${customer.toLowerCase().replace(/[^a-z]/g, "")}.com`,
+            phone: `+${(i % 80) + 10} 555 ${String(1000 + i)}`,
+            message: i % 3 === 0 ? BK_NOTES[i % BK_NOTES.length] : "",
+            convertedTo: status === "converted" ? `SH-${11000 + i}` : null,
+            assignedTo:
+                status === "reviewing" || status === "approved"
+                    ? ["Amir K.", "Sara M.", "Chen W."][i % 3]
+                    : null,
+            notes: "",
+        };
+    });
+}
+
 const EMPTY_FORM: FormState = {
     customer: "",
     mode: "",
@@ -663,6 +817,71 @@ function modeIcon(mode: string) {
     return "🚂";
 }
 
+function bookingModeIcon(mode: Mode) {
+    if (mode === "Sea") {
+        return (
+            <svg
+                viewBox="0 0 14 14"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                style={{ width: 12, height: 12, verticalAlign: "middle" }}
+            >
+                <path d="M1 9l2-5h8l2 5H1z" />
+                <path d="M4 4V3a1 1 0 011-1h4a1 1 0 011 1v1" />
+            </svg>
+        );
+    }
+    if (mode === "Air") {
+        return (
+            <svg
+                viewBox="0 0 14 14"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                style={{ width: 12, height: 12, verticalAlign: "middle" }}
+            >
+                <path d="M1 8l3-4 2 2 5-3 1 2-5 2 1 3-2 1-1-2-4 1z" />
+            </svg>
+        );
+    }
+    if (mode === "Road") {
+        return (
+            <svg
+                viewBox="0 0 14 14"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                style={{ width: 12, height: 12, verticalAlign: "middle" }}
+            >
+                <rect x="1" y="4" width="9" height="6" rx="1" />
+                <path d="M10 7l3 1.5V10h-3V7z" />
+                <circle cx="3.5" cy="10" r="1.5" />
+                <circle cx="8.5" cy="10" r="1.5" />
+            </svg>
+        );
+    }
+    return (
+        <svg
+            viewBox="0 0 14 14"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            style={{ width: 12, height: 12, verticalAlign: "middle" }}
+        >
+            <rect x="2" y="2" width="10" height="8" rx="1.5" />
+            <path d="M2 6h10" />
+            <circle cx="4" cy="12" r="1" />
+            <circle cx="10" cy="12" r="1" />
+            <path d="M4 10v2M10 10v2M5 12h4" />
+        </svg>
+    );
+}
+
 function statusLabel(s: string) {
     return s.charAt(0).toUpperCase() + s.slice(1);
 }
@@ -672,6 +891,28 @@ function fmtDate(v: string) {
         month: "short",
         day: "numeric",
     });
+}
+
+function bookingStatusLabel(status: BookingStatus) {
+    if (status === "new") return "New";
+    if (status === "reviewing") return "Reviewing";
+    if (status === "approved") return "Approved";
+    if (status === "converted") return "Converted";
+    return "Rejected";
+}
+
+function bookingTimeAgo(isoDate: string) {
+    const diff = Math.floor((Date.now() - new Date(isoDate).getTime()) / 60000);
+    if (diff < 1) return "just now";
+    if (diff < 60) return `${diff}m ago`;
+    if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
+    return `${Math.floor(diff / 1440)}d ago`;
+}
+
+function urgencyColor(urgency: BookingUrgency) {
+    if (urgency === "high") return "var(--red)";
+    if (urgency === "medium") return "var(--amber)";
+    return "var(--green)";
 }
 
 function pageRange(cur: number, tot: number) {
@@ -713,8 +954,40 @@ export default function Dashboard() {
         y: 0,
         show: false,
     });
+    const [bookings, setBookings] = useState<Booking[]>(() =>
+        genInitialBookings(),
+    );
+    const [bkSearch, setBkSearch] = useState("");
+    const [bkStatusFlt, setBkStatusFlt] = useState<"all" | BookingStatus>(
+        "all",
+    );
+    const [bkUrgencyFlt, setBkUrgencyFlt] = useState<"all" | BookingUrgency>(
+        "all",
+    );
+    const [bkModeFlt, setBkModeFlt] = useState<"all" | Mode>("all");
+    const [bkView, setBkView] = useState<"grid" | "list">("grid");
+    const [bkCurPage, setBkCurPage] = useState(1);
+    const [bkSelectedId, setBkSelectedId] = useState<string | null>(null);
+    const [bkSelected, setBkSelected] = useState<Set<string>>(new Set());
+    const [convertModalOpen, setConvertModalOpen] = useState(false);
+    const [convertBookingId, setConvertBookingId] = useState<string | null>(
+        null,
+    );
+    const [convertForm, setConvertForm] = useState<BookingConvertForm>({
+        origin: "",
+        destination: "",
+        mode: "Sea",
+        eta: "",
+        customer: "",
+        weight: "",
+        type: "General",
+        containers: "",
+        contact: "",
+        email: "",
+    });
 
     const PER = 10;
+    const BK_PER = 10;
     const deliveredChart = useMemo(
         () =>
             CHART.map((v, i) =>
@@ -812,10 +1085,15 @@ export default function Dashboard() {
     };
 
     const onGlobalSearch = (value: string) => {
-        setSearch(value);
-        setCurPage(1);
-        if (page === "dashboard" && value.trim()) {
-            setPage("shipments");
+        if (page === "bookings") {
+            setBkSearch(value);
+            setBkCurPage(1);
+        } else {
+            setSearch(value);
+            setCurPage(1);
+            if (page === "dashboard" && value.trim()) {
+                setPage("shipments");
+            }
         }
     };
 
@@ -854,9 +1132,46 @@ export default function Dashboard() {
         [db, detailId],
     );
 
+    const bkFiltered = useMemo(() => {
+        const q = bkSearch.toLowerCase().trim();
+        return bookings.filter((b) => {
+            if (bkStatusFlt !== "all" && b.status !== bkStatusFlt) return false;
+            if (bkUrgencyFlt !== "all" && b.urgency !== bkUrgencyFlt)
+                return false;
+            if (bkModeFlt !== "all" && b.mode !== bkModeFlt) return false;
+            if (
+                q &&
+                !`${b.id} ${b.customer} ${b.origin} ${b.destination} ${b.type}`
+                    .toLowerCase()
+                    .includes(q)
+            )
+                return false;
+            return true;
+        });
+    }, [bookings, bkModeFlt, bkSearch, bkStatusFlt, bkUrgencyFlt]);
+
+    const bkTotalPages = Math.max(1, Math.ceil(bkFiltered.length / BK_PER));
+    const bkPageRows = useMemo(
+        () => bkFiltered.slice((bkCurPage - 1) * BK_PER, bkCurPage * BK_PER),
+        [bkCurPage, bkFiltered],
+    );
+    const bkDetail = useMemo(
+        () => bookings.find((x) => x.id === bkSelectedId) ?? null,
+        [bookings, bkSelectedId],
+    );
+
     useEffect(() => {
         if (curPage > totalPages) setCurPage(totalPages);
     }, [curPage, totalPages]);
+
+    useEffect(() => {
+        if (bkCurPage > bkTotalPages) setBkCurPage(bkTotalPages);
+    }, [bkCurPage, bkTotalPages]);
+
+    useEffect(() => {
+        if (page !== "shipments") setDetailId(null);
+        if (page !== "bookings") setBkSelectedId(null);
+    }, [page]);
 
     const kpi = useMemo(() => {
         const total = db.length || 1;
@@ -872,6 +1187,23 @@ export default function Dashboard() {
     const shipmentBadgeCount = db.filter(
         (x) => x.status !== "delivered",
     ).length;
+
+    const bkKpi = useMemo(() => {
+        const out = {
+            total: bookings.length,
+            new: 0,
+            reviewing: 0,
+            approved: 0,
+            converted: 0,
+            rejected: 0,
+        };
+        bookings.forEach((b) => {
+            out[b.status] += 1;
+        });
+        return out;
+    }, [bookings]);
+
+    const bookingBadgeCount = bkKpi.new + bkKpi.reviewing;
 
     const openConfirm = (title: string, msg: string, action: () => void) => {
         setConfirmTitle(title);
@@ -1070,6 +1402,165 @@ export default function Dashboard() {
         });
     };
 
+    const bkToggleRow = (id: string) => {
+        setBkSelected((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const bkToggleAllOnPage = (checked: boolean) => {
+        setBkSelected((prev) => {
+            const next = new Set(prev);
+            bkPageRows.forEach((row) => {
+                if (checked) next.add(row.id);
+                else next.delete(row.id);
+            });
+            return next;
+        });
+    };
+
+    const bkUpdateStatus = (id: string, status: BookingStatus) => {
+        setBookings((prev) =>
+            prev.map((x) =>
+                x.id === id
+                    ? {
+                          ...x,
+                          status,
+                          assignedTo:
+                              status === "reviewing" || status === "approved"
+                                  ? (x.assignedTo ?? "Amir K.")
+                                  : x.assignedTo,
+                      }
+                    : x,
+            ),
+        );
+        pushToast(
+            status === "approved" ? "Booking approved" : "Booking updated",
+            "success",
+        );
+    };
+
+    const openConvertModal = (id: string) => {
+        const b = bookings.find((x) => x.id === id);
+        if (!b) return;
+        setConvertBookingId(id);
+        setConvertForm({
+            origin: b.origin,
+            destination: b.destination,
+            mode: b.mode,
+            eta: "",
+            customer: b.customer,
+            weight: String(b.weight),
+            type: b.type,
+            containers: String(b.containers),
+            contact: b.contact,
+            email: b.email,
+        });
+        setConvertModalOpen(true);
+    };
+
+    const closeConvertModal = () => {
+        setConvertModalOpen(false);
+        setConvertBookingId(null);
+    };
+
+    const confirmConvert = () => {
+        const b = bookings.find((x) => x.id === convertBookingId);
+        if (!b) return;
+        const eta = convertForm.eta
+            ? convertForm.eta
+            : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+                  .toISOString()
+                  .slice(0, 10);
+        const newShipId = `WEB-${String(Date.now()).slice(-5)}`;
+        const newShipment: Shipment = {
+            id: newShipId,
+            customer: convertForm.customer || b.customer,
+            mode: convertForm.mode || b.mode,
+            origin: convertForm.origin || b.origin,
+            originCountry: "Unknown",
+            destination: convertForm.destination || b.destination,
+            destCountry: "Unknown",
+            weight: Number(convertForm.weight) || b.weight,
+            volume: Math.max(
+                1,
+                Math.round((Number(convertForm.weight) || b.weight) / 700),
+            ),
+            status: "pending",
+            eta,
+            cost: 0,
+            container: "TBD",
+            notes: `Converted from booking ${b.id}`,
+            created: new Date().toISOString().slice(0, 10),
+        };
+        setDb((prev) => [newShipment, ...prev]);
+        setBookings((prev) =>
+            prev.map((x) =>
+                x.id === b.id
+                    ? { ...x, status: "converted", convertedTo: newShipId }
+                    : x,
+            ),
+        );
+        setBkSelectedId(b.id);
+        closeConvertModal();
+        pushToast(`Shipment ${newShipId} created`, "success");
+    };
+
+    const bkSimulateIncoming = () => {
+        const [origin, destination] =
+            BK_ROUTES[Math.floor(Math.random() * BK_ROUTES.length)];
+        const customer =
+            BK_CUSTOMERS[Math.floor(Math.random() * BK_CUSTOMERS.length)];
+        const nextNum = bookings.length + 2000;
+        const newBk: Booking = {
+            id: `BKG-${String(nextNum).padStart(5, "0")}`,
+            customer,
+            origin,
+            destination,
+            mode: ["Sea", "Air", "Road", "Rail"][
+                Math.floor(Math.random() * 4)
+            ] as Mode,
+            type: BK_TYPES[Math.floor(Math.random() * BK_TYPES.length)],
+            weight: 300 + Math.floor(Math.random() * 7000),
+            containers: 1 + Math.floor(Math.random() * 4),
+            urgency: ["high", "medium", "low"][
+                Math.floor(Math.random() * 3)
+            ] as BookingUrgency,
+            status: "new",
+            received: new Date().toISOString(),
+            contact: "Web Portal User",
+            email: "booking@website.com",
+            phone: "+1 555 0000",
+            message: BK_NOTES[Math.floor(Math.random() * BK_NOTES.length)],
+            convertedTo: null,
+            assignedTo: null,
+            notes: "",
+        };
+        setBookings((prev) => [newBk, ...prev]);
+        pushToast(`New booking request from ${newBk.customer}`, "info");
+    };
+
+    const bkExportCsv = () => {
+        const header =
+            "id,customer,origin,destination,mode,type,weight,urgency,status,received";
+        const rows = bkFiltered.map(
+            (b) =>
+                `${b.id},${b.customer},${b.origin},${b.destination},${b.mode},${b.type},${b.weight},${b.urgency},${b.status},${b.received}`,
+        );
+        const csv = [header, ...rows].join("\n");
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "bookings.csv";
+        a.click();
+        URL.revokeObjectURL(url);
+        pushToast("Exported bookings CSV", "success");
+    };
+
     return (
         <>
             <Head title="Dashboard" />
@@ -1184,6 +1675,44 @@ export default function Dashboard() {
                             <span className="nav-label">Shipments</span>
                             <span className="nav-badge">
                                 {shipmentBadgeCount}
+                            </span>
+                        </button>
+                        <button
+                            className={`nav-item ${page === "bookings" ? "active" : ""}`}
+                            onClick={() => setPage("bookings")}
+                            data-tip="Bookings"
+                        >
+                            <svg
+                                className="nav-icon"
+                                viewBox="0 0 18 18"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.6"
+                                strokeLinecap="round"
+                            >
+                                <rect
+                                    x="2"
+                                    y="3"
+                                    width="14"
+                                    height="13"
+                                    rx="1.5"
+                                />
+                                <path d="M2 7h14" />
+                                <path d="M6 1v4M12 1v4" />
+                                <path d="M6 11h2M10 11h2M6 14h2" />
+                            </svg>
+                            <span className="nav-label">Bookings</span>
+                            <span
+                                className="nav-badge"
+                                style={{
+                                    background: "var(--amber)",
+                                    display:
+                                        bookingBadgeCount > 0
+                                            ? "inline-flex"
+                                            : "none",
+                                }}
+                            >
+                                {bookingBadgeCount}
                             </span>
                         </button>
                         <button
@@ -1376,7 +1905,11 @@ export default function Dashboard() {
                             </svg>
                         </button>
                         <span className="topbar-title">
-                            {page === "dashboard" ? "Dashboard" : "Shipments"}
+                            {page === "dashboard"
+                                ? "Dashboard"
+                                : page === "bookings"
+                                  ? "Bookings"
+                                  : "Shipments"}
                         </span>
                         <div className="topbar-actions">
                             <div className="search-wrap">
@@ -1391,11 +1924,17 @@ export default function Dashboard() {
                                     <path d="M11 11l3 3" />
                                 </svg>
                                 <input
-                                    value={search}
+                                    value={
+                                        page === "bookings" ? bkSearch : search
+                                    }
                                     onChange={(e) =>
                                         onGlobalSearch(e.target.value)
                                     }
-                                    placeholder="Search cargo, routes…"
+                                    placeholder={
+                                        page === "bookings"
+                                            ? "Search bookings..."
+                                            : "Search cargo, routes..."
+                                    }
                                     style={{ width: 160 }}
                                 />
                             </div>
@@ -2917,6 +3456,1707 @@ export default function Dashboard() {
                             </div>
                         </div>
                     </div>
+
+                    <div
+                        className={`page ${page === "bookings" ? "active" : ""}`}
+                    >
+                        <div className="content">
+                            <div style={{ display: "flex", gap: 14 }}>
+                                <div
+                                    className="stat-card"
+                                    style={{
+                                        flex: 1,
+                                        padding: "14px 18px",
+                                        animation: "none",
+                                    }}
+                                >
+                                    <div
+                                        className="stat-top"
+                                        style={{ marginBottom: 6 }}
+                                    >
+                                        <div
+                                            className="stat-icon"
+                                            style={{
+                                                background:
+                                                    "var(--blue-dim)",
+                                                color: "var(--blue)",
+                                                width: 28,
+                                                height: 28,
+                                            }}
+                                        >
+                                            <svg
+                                                viewBox="0 0 18 18"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.7"
+                                                strokeLinecap="round"
+                                            >
+                                                <rect
+                                                    x="2"
+                                                    y="3"
+                                                    width="14"
+                                                    height="13"
+                                                    rx="1.5"
+                                                />
+                                                <path d="M2 7h14" />
+                                                <path d="M6 1v4M12 1v4" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div
+                                        className="stat-value"
+                                        style={{ fontSize: 22 }}
+                                    >
+                                        {bkKpi.total}
+                                    </div>
+                                    <div className="stat-label">
+                                        Total Requests
+                                    </div>
+                                </div>
+                                <div
+                                    className="stat-card"
+                                    style={{
+                                        flex: 1,
+                                        padding: "14px 18px",
+                                        animation: "none",
+                                    }}
+                                >
+                                    <div
+                                        className="stat-top"
+                                        style={{ marginBottom: 6 }}
+                                    >
+                                        <div
+                                            className="stat-icon"
+                                            style={{
+                                                background:
+                                                    "var(--blue-dim)",
+                                                color: "var(--blue)",
+                                                width: 28,
+                                                height: 28,
+                                            }}
+                                        >
+                                            <svg
+                                                viewBox="0 0 18 18"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.7"
+                                                strokeLinecap="round"
+                                            >
+                                                <path d="M9 2l2 5h5l-4 3 2 5-5-3-5 3 2-5-4-3h5z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div
+                                        className="stat-value"
+                                        style={{
+                                            fontSize: 22,
+                                            color: "var(--blue)",
+                                        }}
+                                    >
+                                        {bkKpi.new}
+                                    </div>
+                                    <div className="stat-label">
+                                        New / Unreviewed
+                                    </div>
+                                </div>
+                                <div
+                                    className="stat-card"
+                                    style={{
+                                        flex: 1,
+                                        padding: "14px 18px",
+                                        animation: "none",
+                                    }}
+                                >
+                                    <div
+                                        className="stat-top"
+                                        style={{ marginBottom: 6 }}
+                                    >
+                                        <div
+                                            className="stat-icon"
+                                            style={{
+                                                background:
+                                                    "var(--purple-dim)",
+                                                color: "var(--purple)",
+                                                width: 28,
+                                                height: 28,
+                                            }}
+                                        >
+                                            <svg
+                                                viewBox="0 0 18 18"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.7"
+                                                strokeLinecap="round"
+                                            >
+                                                <circle cx="9" cy="9" r="7" />
+                                                <path d="M9 5v4l2.5 2.5" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div
+                                        className="stat-value"
+                                        style={{
+                                            fontSize: 22,
+                                            color: "var(--purple)",
+                                        }}
+                                    >
+                                        {bkKpi.reviewing}
+                                    </div>
+                                    <div className="stat-label">Under Review</div>
+                                </div>
+                                <div
+                                    className="stat-card"
+                                    style={{
+                                        flex: 1,
+                                        padding: "14px 18px",
+                                        animation: "none",
+                                    }}
+                                >
+                                    <div
+                                        className="stat-top"
+                                        style={{ marginBottom: 6 }}
+                                    >
+                                        <div
+                                            className="stat-icon"
+                                            style={{
+                                                background:
+                                                    "var(--green-dim)",
+                                                color: "var(--green)",
+                                                width: 28,
+                                                height: 28,
+                                            }}
+                                        >
+                                            <svg
+                                                viewBox="0 0 18 18"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.7"
+                                                strokeLinecap="round"
+                                            >
+                                                <path d="M2 9l5 5 9-9" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div
+                                        className="stat-value"
+                                        style={{
+                                            fontSize: 22,
+                                            color: "var(--green)",
+                                        }}
+                                    >
+                                        {bkKpi.converted}
+                                    </div>
+                                    <div className="stat-label">Converted</div>
+                                </div>
+                                <div
+                                    className="stat-card"
+                                    style={{
+                                        flex: 1,
+                                        padding: "14px 18px",
+                                        animation: "none",
+                                    }}
+                                >
+                                    <div
+                                        className="stat-top"
+                                        style={{ marginBottom: 6 }}
+                                    >
+                                        <div
+                                            className="stat-icon"
+                                            style={{
+                                                background: "var(--red-dim)",
+                                                color: "var(--red)",
+                                                width: 28,
+                                                height: 28,
+                                            }}
+                                        >
+                                            <svg
+                                                viewBox="0 0 18 18"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.7"
+                                                strokeLinecap="round"
+                                            >
+                                                <path d="M5 5l8 8M13 5l-8 8" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div
+                                        className="stat-value"
+                                        style={{
+                                            fontSize: 22,
+                                            color: "var(--red)",
+                                        }}
+                                    >
+                                        {bkKpi.rejected}
+                                    </div>
+                                    <div className="stat-label">Rejected</div>
+                                </div>
+                            </div>
+
+                            <div className="card" style={{ overflow: "visible" }}>
+                                <div
+                                    style={{
+                                        padding: "12px 16px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 8,
+                                        flexWrap: "wrap",
+                                    }}
+                                >
+                                    <div
+                                        className="search-wrap"
+                                        style={{
+                                            flex: 1,
+                                            maxWidth: 280,
+                                            minWidth: 180,
+                                        }}
+                                    >
+                                        <svg
+                                            viewBox="0 0 16 16"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.7"
+                                            strokeLinecap="round"
+                                        >
+                                            <circle cx="7" cy="7" r="5" />
+                                            <path d="M11 11l3 3" />
+                                        </svg>
+                                        <input
+                                            value={bkSearch}
+                                            onChange={(e) => {
+                                                setBkSearch(e.target.value);
+                                                setBkCurPage(1);
+                                            }}
+                                            placeholder="Search ID, customer, route…"
+                                            style={{ width: "100%" }}
+                                        />
+                                    </div>
+                                    <div className="filter-tabs">
+                                        {(
+                                            [
+                                                "all",
+                                                "new",
+                                                "reviewing",
+                                                "approved",
+                                                "converted",
+                                                "rejected",
+                                            ] as const
+                                        ).map((s) => (
+                                            <button
+                                                key={s}
+                                                className={`filter-tab ${bkStatusFlt === s ? "active" : ""}`}
+                                                onClick={() => {
+                                                    setBkStatusFlt(s);
+                                                    setBkCurPage(1);
+                                                }}
+                                            >
+                                                {s === "all"
+                                                    ? "All"
+                                                    : bookingStatusLabel(s)}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <select
+                                        className="sh-select"
+                                        value={bkUrgencyFlt}
+                                        onChange={(e) => {
+                                            setBkUrgencyFlt(
+                                                e.target.value as
+                                                    | "all"
+                                                    | BookingUrgency,
+                                            );
+                                            setBkCurPage(1);
+                                        }}
+                                    >
+                                        <option value="all">All Urgency</option>
+                                        <option value="high">High</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="low">Low</option>
+                                    </select>
+                                    <select
+                                        className="sh-select"
+                                        value={bkModeFlt}
+                                        onChange={(e) => {
+                                            setBkModeFlt(
+                                                e.target.value as "all" | Mode,
+                                            );
+                                            setBkCurPage(1);
+                                        }}
+                                    >
+                                        <option value="all">All Modes</option>
+                                        <option value="Sea">Sea</option>
+                                        <option value="Air">Air</option>
+                                        <option value="Road">Road</option>
+                                        <option value="Rail">Rail</option>
+                                    </select>
+                                    <div
+                                        style={{
+                                            marginLeft: "auto",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 8,
+                                        }}
+                                    >
+                                        <div className="view-toggle">
+                                            <button
+                                                className={`view-btn ${bkView === "grid" ? "active" : ""}`}
+                                                onClick={() => setBkView("grid")}
+                                                title="Grid view"
+                                            >
+                                                <svg
+                                                    viewBox="0 0 14 14"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.7"
+                                                    strokeLinecap="round"
+                                                >
+                                                    <rect
+                                                        x="1"
+                                                        y="1"
+                                                        width="5"
+                                                        height="5"
+                                                        rx="1"
+                                                    />
+                                                    <rect
+                                                        x="8"
+                                                        y="1"
+                                                        width="5"
+                                                        height="5"
+                                                        rx="1"
+                                                    />
+                                                    <rect
+                                                        x="1"
+                                                        y="8"
+                                                        width="5"
+                                                        height="5"
+                                                        rx="1"
+                                                    />
+                                                    <rect
+                                                        x="8"
+                                                        y="8"
+                                                        width="5"
+                                                        height="5"
+                                                        rx="1"
+                                                    />
+                                                </svg>
+                                            </button>
+                                            <button
+                                                className={`view-btn ${bkView === "list" ? "active" : ""}`}
+                                                onClick={() => setBkView("list")}
+                                                title="List view"
+                                            >
+                                                <svg
+                                                    viewBox="0 0 14 14"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.7"
+                                                    strokeLinecap="round"
+                                                >
+                                                    <path d="M1 3h12M1 7h12M1 11h12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <button
+                                            className="btn"
+                                            onClick={bkSimulateIncoming}
+                                            style={{
+                                                color: "var(--amber)",
+                                                borderColor:
+                                                    "rgba(245,158,11,0.3)",
+                                            }}
+                                        >
+                                            <svg
+                                                viewBox="0 0 14 14"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.7"
+                                                strokeLinecap="round"
+                                                style={{ width: 13, height: 13 }}
+                                            >
+                                                <path d="M7 10V2M4 5l3-3 3 3" />
+                                                <path d="M1 11v1a1 1 0 001 1h10a1 1 0 001-1v-1" />
+                                            </svg>
+                                            Simulate Incoming
+                                        </button>
+                                        <button className="btn" onClick={bkExportCsv}>
+                                            <svg
+                                                viewBox="0 0 14 14"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="1.7"
+                                                strokeLinecap="round"
+                                            >
+                                                <path d="M7 1v8M4 6l3 3 3-3" />
+                                                <path d="M1 11v1a1 1 0 001 1h10a1 1 0 001-1v-1" />
+                                            </svg>
+                                            Export
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        overflow: "hidden",
+                                        minHeight: 460,
+                                    }}
+                                >
+                                    {bkView === "grid" ? (
+                                        <div
+                                            style={{
+                                                flex: 1,
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                overflow: "hidden",
+                                            }}
+                                        >
+                                            <div className="bk-grid-scroll">
+                                                {bkPageRows.length === 0 ? (
+                                                    <div className="empty-state">
+                                                        <svg
+                                                            viewBox="0 0 40 40"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            strokeWidth="1.2"
+                                                            strokeLinecap="round"
+                                                        >
+                                                            <rect
+                                                                x="4"
+                                                                y="8"
+                                                                width="32"
+                                                                height="28"
+                                                                rx="3"
+                                                            />
+                                                            <path d="M13 4v8M27 4v8M4 18h32" />
+                                                        </svg>
+                                                        <p>
+                                                            No bookings match
+                                                            your filters
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="bk-grid-body">
+                                                        {bkPageRows.map((b) => (
+                                                            <div
+                                                                key={b.id}
+                                                                className={`bk-card ${bkSelectedId === b.id ? "selected" : ""}`}
+                                                                onClick={() =>
+                                                                    setBkSelectedId(
+                                                                        b.id,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <div className="bk-card-top">
+                                                                    <span className="bk-card-id">
+                                                                        {b.id}
+                                                                    </span>
+                                                                    <span className="bk-card-time">
+                                                                        {bookingTimeAgo(
+                                                                            b.received,
+                                                                        )}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="bk-card-name">
+                                                                    {b.customer}
+                                                                </div>
+                                                                <div className="bk-card-route">
+                                                                    <span>
+                                                                        {
+                                                                            b.origin
+                                                                        }
+                                                                    </span>
+                                                                    <svg
+                                                                        viewBox="0 0 10 6"
+                                                                        fill="none"
+                                                                        stroke="currentColor"
+                                                                        strokeWidth="1.5"
+                                                                        strokeLinecap="round"
+                                                                        style={{
+                                                                            width: 10,
+                                                                            flexShrink: 0,
+                                                                            color: "var(--text-3)",
+                                                                        }}
+                                                                    >
+                                                                        <path d="M1 3h8M6 1l2 2-2 2" />
+                                                                    </svg>
+                                                                    <span>
+                                                                        {
+                                                                            b.destination
+                                                                        }
+                                                                    </span>
+                                                                </div>
+                                                                <div
+                                                                    style={{
+                                                                        fontSize: 11.5,
+                                                                        color: "var(--text-3)",
+                                                                        marginTop: 6,
+                                                                    }}
+                                                                >
+                                                                    {b.type} ·{" "}
+                                                                    {b.weight.toLocaleString()}{" "}
+                                                                    kg ·{" "}
+                                                                    {
+                                                                        b.containers
+                                                                    }{" "}
+                                                                    ctr
+                                                                </div>
+                                                                <div className="bk-card-footer">
+                                                                    <span
+                                                                        className={`badge ${b.status}`}
+                                                                        style={{ fontSize: 11 }}
+                                                                    >
+                                                                        {bookingStatusLabel(
+                                                                            b.status,
+                                                                        )}
+                                                                    </span>
+                                                                    <div
+                                                                        style={{
+                                                                            display: "flex",
+                                                                            alignItems:
+                                                                                "center",
+                                                                            gap: 6,
+                                                                            fontSize: 11,
+                                                                            color: "var(--text-3)",
+                                                                        }}
+                                                                    >
+                                                                        <div
+                                                                            style={{
+                                                                                display: "flex",
+                                                                                alignItems: "center",
+                                                                                gap: 4,
+                                                                            }}
+                                                                        >
+                                                                            {bookingModeIcon(
+                                                                                b.mode,
+                                                                            )}
+                                                                            {b.mode}
+                                                                        </div>
+                                                                        <div
+                                                                            style={{
+                                                                                width: 1,
+                                                                                height: 10,
+                                                                                background:
+                                                                                    "var(--border)",
+                                                                            }}
+                                                                        />
+                                                                        <div
+                                                                            style={{
+                                                                                display: "flex",
+                                                                                alignItems: "center",
+                                                                                gap: 4,
+                                                                                color: urgencyColor(
+                                                                                    b.urgency,
+                                                                                ),
+                                                                                textTransform:
+                                                                                    "capitalize",
+                                                                            }}
+                                                                        >
+                                                                            <span
+                                                                                style={{
+                                                                                    width: 5,
+                                                                                    height: 5,
+                                                                                    borderRadius:
+                                                                                        "50%",
+                                                                                    background:
+                                                                                        urgencyColor(
+                                                                                            b.urgency,
+                                                                                        ),
+                                                                                    display:
+                                                                                        "inline-block",
+                                                                                }}
+                                                                            />
+                                                                            {b.urgency}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="bk-pagination">
+                                                <span>
+                                                    {bkFiltered.length === 0
+                                                        ? "No results"
+                                                        : `Showing ${(bkCurPage - 1) * BK_PER + 1}-${Math.min(bkCurPage * BK_PER, bkFiltered.length)} of ${bkFiltered.length}`}
+                                                </span>
+                                                <div className="pag-btns">
+                                                    <button
+                                                        className="pag-btn"
+                                                        disabled={
+                                                            bkCurPage <= 1
+                                                        }
+                                                        onClick={() =>
+                                                            setBkCurPage((p) =>
+                                                                Math.max(
+                                                                    1,
+                                                                    p - 1,
+                                                                ),
+                                                            )
+                                                        }
+                                                    >
+                                                        <svg
+                                                            viewBox="0 0 12 12"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            strokeWidth="1.8"
+                                                            strokeLinecap="round"
+                                                        >
+                                                            <path d="M7 2L3 6l4 4" />
+                                                        </svg>
+                                                    </button>
+                                                    {pageRange(
+                                                        bkCurPage,
+                                                        bkTotalPages,
+                                                    ).map((p, i) =>
+                                                        typeof p ===
+                                                        "number" ? (
+                                                            <button
+                                                                key={p}
+                                                                className={`pag-btn ${p === bkCurPage ? "active" : ""}`}
+                                                                onClick={() =>
+                                                                    setBkCurPage(
+                                                                        p,
+                                                                    )
+                                                                }
+                                                            >
+                                                                {p}
+                                                            </button>
+                                                        ) : (
+                                                            <span
+                                                                key={`bk-ellipsis-${i}`}
+                                                                style={{
+                                                                    display:
+                                                                        "grid",
+                                                                    placeItems:
+                                                                        "center",
+                                                                    width: 30,
+                                                                    height: 30,
+                                                                    color: "var(--text-3)",
+                                                                }}
+                                                            >
+                                                                …
+                                                            </span>
+                                                        ),
+                                                    )}
+                                                    <button
+                                                        className="pag-btn"
+                                                        disabled={
+                                                            bkCurPage >=
+                                                            bkTotalPages
+                                                        }
+                                                        onClick={() =>
+                                                            setBkCurPage((p) =>
+                                                                Math.min(
+                                                                    bkTotalPages,
+                                                                    p + 1,
+                                                                ),
+                                                            )
+                                                        }
+                                                    >
+                                                        <svg
+                                                            viewBox="0 0 12 12"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            strokeWidth="1.8"
+                                                            strokeLinecap="round"
+                                                        >
+                                                            <path d="M5 2l4 4-4 4" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div
+                                            style={{
+                                                flex: 1,
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                overflow: "hidden",
+                                            }}
+                                        >
+                                            <div className="bk-table-wrap">
+                                                <table className="bk-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th
+                                                                style={{
+                                                                    width: 36,
+                                                                    paddingLeft: 16,
+                                                                }}
+                                                            >
+                                                                <input
+                                                                    type="checkbox"
+                                                                    className="sh-checkbox"
+                                                                    checked={
+                                                                        bkPageRows.length >
+                                                                            0 &&
+                                                                        bkPageRows.every(
+                                                                            (
+                                                                                r,
+                                                                            ) =>
+                                                                                bkSelected.has(
+                                                                                    r.id,
+                                                                                ),
+                                                                        )
+                                                                    }
+                                                                    onChange={(
+                                                                        e,
+                                                                    ) =>
+                                                                        bkToggleAllOnPage(
+                                                                            e
+                                                                                .target
+                                                                                .checked,
+                                                                        )
+                                                                    }
+                                                                />
+                                                            </th>
+                                                            <th>Booking ID</th>
+                                                            <th>Customer</th>
+                                                            <th>Route</th>
+                                                            <th>Mode</th>
+                                                            <th>Cargo</th>
+                                                            <th>Weight</th>
+                                                            <th>Urgency</th>
+                                                            <th>Received</th>
+                                                            <th>Status</th>
+                                                            <th />
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {bkPageRows.map((b) => (
+                                                            <tr
+                                                                key={b.id}
+                                                                className={
+                                                                    bkSelectedId ===
+                                                                    b.id
+                                                                        ? "bk-selected-row"
+                                                                        : ""
+                                                                }
+                                                                onClick={() =>
+                                                                    setBkSelectedId(
+                                                                        b.id,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <td
+                                                                    style={{
+                                                                        paddingLeft: 16,
+                                                                    }}
+                                                                    onClick={(
+                                                                        e,
+                                                                    ) =>
+                                                                        e.stopPropagation()
+                                                                    }
+                                                                >
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        className="sh-checkbox"
+                                                                        checked={bkSelected.has(
+                                                                            b.id,
+                                                                        )}
+                                                                        onChange={() =>
+                                                                            bkToggleRow(
+                                                                                b.id,
+                                                                            )
+                                                                        }
+                                                                    />
+                                                                </td>
+                                                                <td className="mono">
+                                                                    {b.id}
+                                                                </td>
+                                                                <td>
+                                                                    {b.customer}
+                                                                    <div className="text-muted">
+                                                                        {b.email}
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    {b.origin}{" "}
+                                                                    -&gt;{" "}
+                                                                    {
+                                                                        b.destination
+                                                                    }
+                                                                </td>
+                                                                <td>
+                                                                    {bookingModeIcon(
+                                                                        b.mode,
+                                                                    )}{" "}
+                                                                    {b.mode}
+                                                                </td>
+                                                                <td>
+                                                                    {b.type}
+                                                                </td>
+                                                                <td>
+                                                                    {b.weight.toLocaleString()}{" "}
+                                                                    kg
+                                                                </td>
+                                                                <td
+                                                                    style={{
+                                                                        textTransform:
+                                                                            "capitalize",
+                                                                    }}
+                                                                >
+                                                                    <span
+                                                                        className="bk-urgency"
+                                                                        style={{
+                                                                            display:
+                                                                                "inline-block",
+                                                                            marginRight: 6,
+                                                                            width: 7,
+                                                                            height: 7,
+                                                                            background:
+                                                                                urgencyColor(
+                                                                                    b.urgency,
+                                                                                ),
+                                                                        }}
+                                                                    />
+                                                                    {b.urgency}
+                                                                </td>
+                                                                <td>
+                                                                    {fmtDate(
+                                                                        b.received,
+                                                                    )}
+                                                                </td>
+                                                                <td>
+                                                                    <span
+                                                                        className={`badge ${b.status}`}
+                                                                    >
+                                                                        {bookingStatusLabel(
+                                                                            b.status,
+                                                                        )}
+                                                                    </span>
+                                                                </td>
+                                                                <td>
+                                                                    <button
+                                                                        style={{
+                                                                            background:
+                                                                                "none",
+                                                                            border:
+                                                                                "none",
+                                                                            cursor:
+                                                                                "pointer",
+                                                                            color: "var(--text-3)",
+                                                                            padding: 4,
+                                                                            borderRadius: 5,
+                                                                            display:
+                                                                                "grid",
+                                                                            placeItems:
+                                                                                "center",
+                                                                        }}
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setBkSelectedId(
+                                                                                b.id,
+                                                                            );
+                                                                        }}
+                                                                    >
+                                                                        <svg
+                                                                            viewBox="0 0 14 14"
+                                                                            fill="none"
+                                                                            stroke="currentColor"
+                                                                            strokeWidth="1.7"
+                                                                            strokeLinecap="round"
+                                                                            style={{
+                                                                                width: 13,
+                                                                                height: 13,
+                                                                            }}
+                                                                        >
+                                                                            <path d="M5 2h7v7" />
+                                                                            <path d="M12 2L2 12" />
+                                                                        </svg>
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <div className="bk-pagination">
+                                                <span>
+                                                    {bkFiltered.length === 0
+                                                        ? "No results"
+                                                        : `Showing ${(bkCurPage - 1) * BK_PER + 1}-${Math.min(bkCurPage * BK_PER, bkFiltered.length)} of ${bkFiltered.length}`}
+                                                </span>
+                                                <div className="pag-btns">
+                                                    <button
+                                                        className="pag-btn"
+                                                        disabled={
+                                                            bkCurPage <= 1
+                                                        }
+                                                        onClick={() =>
+                                                            setBkCurPage((p) =>
+                                                                Math.max(
+                                                                    1,
+                                                                    p - 1,
+                                                                ),
+                                                            )
+                                                        }
+                                                    >
+                                                        <svg
+                                                            viewBox="0 0 12 12"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            strokeWidth="1.8"
+                                                            strokeLinecap="round"
+                                                        >
+                                                            <path d="M7 2L3 6l4 4" />
+                                                        </svg>
+                                                    </button>
+                                                    {pageRange(
+                                                        bkCurPage,
+                                                        bkTotalPages,
+                                                    ).map((p, i) =>
+                                                        typeof p ===
+                                                        "number" ? (
+                                                            <button
+                                                                key={p}
+                                                                className={`pag-btn ${p === bkCurPage ? "active" : ""}`}
+                                                                onClick={() =>
+                                                                    setBkCurPage(
+                                                                        p,
+                                                                    )
+                                                                }
+                                                            >
+                                                                {p}
+                                                            </button>
+                                                        ) : (
+                                                            <span
+                                                                key={`bk-list-ellipsis-${i}`}
+                                                                style={{
+                                                                    display:
+                                                                        "grid",
+                                                                    placeItems:
+                                                                        "center",
+                                                                    width: 30,
+                                                                    height: 30,
+                                                                    color: "var(--text-3)",
+                                                                }}
+                                                            >
+                                                                …
+                                                            </span>
+                                                        ),
+                                                    )}
+                                                    <button
+                                                        className="pag-btn"
+                                                        disabled={
+                                                            bkCurPage >=
+                                                            bkTotalPages
+                                                        }
+                                                        onClick={() =>
+                                                            setBkCurPage((p) =>
+                                                                Math.min(
+                                                                    bkTotalPages,
+                                                                    p + 1,
+                                                                ),
+                                                            )
+                                                        }
+                                                    >
+                                                        <svg
+                                                            viewBox="0 0 12 12"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            strokeWidth="1.8"
+                                                            strokeLinecap="round"
+                                                        >
+                                                            <path d="M5 2l4 4-4 4" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div
+                                        className={`bk-detail ${bkDetail ? "open" : ""}`}
+                                    >
+                                        {bkDetail && (
+                                            <>
+                                                <div className="dp-header">
+                                                    <div>
+                                                        <div
+                                                            style={{
+                                                                fontSize: 15,
+                                                                fontWeight: 600,
+                                                                letterSpacing:
+                                                                    "-0.02em",
+                                                            }}
+                                                        >
+                                                            {bkDetail.id}
+                                                        </div>
+                                                        <div
+                                                            style={{
+                                                                marginTop: 4,
+                                                            }}
+                                                        >
+                                                            <span
+                                                                className={`badge ${bkDetail.status}`}
+                                                            >
+                                                                {bookingStatusLabel(
+                                                                    bkDetail.status,
+                                                                )}
+                                                            </span>
+                                                            <span
+                                                                style={{
+                                                                    marginLeft: 6,
+                                                                    display:
+                                                                        "inline-flex",
+                                                                    alignItems:
+                                                                        "center",
+                                                                    gap: 4,
+                                                                    fontSize: 11.5,
+                                                                    color: urgencyColor(
+                                                                        bkDetail.urgency,
+                                                                    ),
+                                                                }}
+                                                            >
+                                                                <span
+                                                                    style={{
+                                                                        width: 6,
+                                                                        height: 6,
+                                                                        borderRadius:
+                                                                            "50%",
+                                                                        background:
+                                                                            urgencyColor(
+                                                                                bkDetail.urgency,
+                                                                            ),
+                                                                        display:
+                                                                            "inline-block",
+                                                                    }}
+                                                                />
+                                                                {
+                                                                    bkDetail.urgency
+                                                                }{" "}
+                                                                urgency
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        className="dp-close"
+                                                        onClick={() =>
+                                                            setBkSelectedId(
+                                                                null,
+                                                            )
+                                                        }
+                                                    >
+                                                        <svg
+                                                            viewBox="0 0 12 12"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            strokeWidth="1.8"
+                                                            strokeLinecap="round"
+                                                        >
+                                                            <path d="M1 1l10 10M11 1L1 11" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                                <div className="bk-detail-scroll">
+                                                    <div className="dp-body">
+                                                        <div className="dp-section">
+                                                            <div className="dp-section-title">
+                                                                Requester
+                                                            </div>
+                                                            <div className="dp-row">
+                                                                <span className="dp-key">
+                                                                    Company
+                                                                </span>
+                                                                <span className="dp-val">
+                                                                    {
+                                                                        bkDetail.customer
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                            <div className="dp-row">
+                                                                <span className="dp-key">
+                                                                    Contact
+                                                                </span>
+                                                                <span className="dp-val">
+                                                                    {
+                                                                        bkDetail.contact
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                            <div className="dp-row">
+                                                                <span className="dp-key">
+                                                                    Email
+                                                                </span>
+                                                                <span
+                                                                    className="dp-val"
+                                                                    style={{
+                                                                        color: "var(--blue)",
+                                                                    }}
+                                                                >
+                                                                    {
+                                                                        bkDetail.email
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                            <div className="dp-row">
+                                                                <span className="dp-key">
+                                                                    Phone
+                                                                </span>
+                                                                <span className="dp-val">
+                                                                    {
+                                                                        bkDetail.phone
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                            <div className="dp-row">
+                                                                <span className="dp-key">
+                                                                    Received
+                                                                </span>
+                                                                <span className="dp-val mono">
+                                                                    {fmtDate(
+                                                                        bkDetail.received,
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                            {bkDetail.assignedTo && (
+                                                                <div className="dp-row">
+                                                                    <span className="dp-key">
+                                                                        Assigned
+                                                                        To
+                                                                    </span>
+                                                                    <span className="dp-val">
+                                                                        {
+                                                                            bkDetail.assignedTo
+                                                                        }
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="dp-section">
+                                                            <div className="dp-section-title">
+                                                                Shipment Request
+                                                            </div>
+                                                            <div
+                                                                style={{
+                                                                    display:
+                                                                        "flex",
+                                                                    alignItems:
+                                                                        "center",
+                                                                    gap: 8,
+                                                                    marginBottom: 12,
+                                                                }}
+                                                            >
+                                                                <div
+                                                                    style={{
+                                                                        flex: 1,
+                                                                        background:
+                                                                            "var(--bg-3)",
+                                                                        borderRadius: 7,
+                                                                        padding:
+                                                                            "8px 12px",
+                                                                        textAlign:
+                                                                            "center",
+                                                                    }}
+                                                                >
+                                                                    <div
+                                                                        style={{
+                                                                            fontSize: 11,
+                                                                            color: "var(--text-3)",
+                                                                        }}
+                                                                    >
+                                                                        Origin
+                                                                    </div>
+                                                                    <div
+                                                                        style={{
+                                                                            fontSize: 14,
+                                                                            fontWeight: 600,
+                                                                            marginTop: 2,
+                                                                        }}
+                                                                    >
+                                                                        {
+                                                                            bkDetail.origin
+                                                                        }
+                                                                    </div>
+                                                                </div>
+                                                                <svg
+                                                                    viewBox="0 0 20 10"
+                                                                    fill="none"
+                                                                    stroke="currentColor"
+                                                                    strokeWidth="1.5"
+                                                                    strokeLinecap="round"
+                                                                    style={{
+                                                                        width: 28,
+                                                                        flexShrink:
+                                                                            0,
+                                                                        color: "var(--text-3)",
+                                                                    }}
+                                                                >
+                                                                    <path d="M2 5h16M14 2l4 3-4 3" />
+                                                                </svg>
+                                                                <div
+                                                                    style={{
+                                                                        flex: 1,
+                                                                        background:
+                                                                            "var(--bg-3)",
+                                                                        borderRadius: 7,
+                                                                        padding:
+                                                                            "8px 12px",
+                                                                        textAlign:
+                                                                            "center",
+                                                                    }}
+                                                                >
+                                                                    <div
+                                                                        style={{
+                                                                            fontSize: 11,
+                                                                            color: "var(--text-3)",
+                                                                        }}
+                                                                    >
+                                                                        Destination
+                                                                    </div>
+                                                                    <div
+                                                                        style={{
+                                                                            fontSize: 14,
+                                                                            fontWeight: 600,
+                                                                            marginTop: 2,
+                                                                        }}
+                                                                    >
+                                                                        {
+                                                                            bkDetail.destination
+                                                                        }
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div className="dp-row">
+                                                                <span className="dp-key">
+                                                                    Mode
+                                                                </span>
+                                                                <span className="dp-val">
+                                                                    {bookingModeIcon(
+                                                                        bkDetail.mode,
+                                                                    )}{" "}
+                                                                    {
+                                                                        bkDetail.mode
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                            <div className="dp-row">
+                                                                <span className="dp-key">
+                                                                    Cargo Type
+                                                                </span>
+                                                                <span className="dp-val">
+                                                                    {
+                                                                        bkDetail.type
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                            <div className="dp-row">
+                                                                <span className="dp-key">
+                                                                    Weight
+                                                                </span>
+                                                                <span className="dp-val">
+                                                                    {bkDetail.weight.toLocaleString()}{" "}
+                                                                    kg
+                                                                </span>
+                                                            </div>
+                                                            <div className="dp-row">
+                                                                <span className="dp-key">
+                                                                    Containers
+                                                                </span>
+                                                                <span className="dp-val">
+                                                                    {
+                                                                        bkDetail.containers
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                            {bkDetail.message && (
+                                                                <div
+                                                                    style={{
+                                                                        marginTop: 8,
+                                                                        background:
+                                                                            "var(--bg-3)",
+                                                                        borderRadius: 7,
+                                                                        padding:
+                                                                            "10px 12px",
+                                                                        fontSize: 12.5,
+                                                                        color: "var(--text-2)",
+                                                                        lineHeight: 1.5,
+                                                                    }}
+                                                                >
+                                                                    <div
+                                                                        style={{
+                                                                            fontSize: 11,
+                                                                            color: "var(--text-3)",
+                                                                            marginBottom: 4,
+                                                                            fontWeight: 600,
+                                                                            textTransform:
+                                                                                "uppercase",
+                                                                            letterSpacing:
+                                                                                ".06em",
+                                                                        }}
+                                                                    >
+                                                                        Customer
+                                                                        Note
+                                                                    </div>
+                                                                    {
+                                                                        bkDetail.message
+                                                                    }
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        {bkDetail.status ===
+                                                            "converted" &&
+                                                            bkDetail.convertedTo && (
+                                                                <div className="dp-section">
+                                                                    <div className="dp-section-title">
+                                                                        Conversion
+                                                                    </div>
+                                                                    <div
+                                                                        style={{
+                                                                            background:
+                                                                                "var(--green-dim)",
+                                                                            border: "1px solid rgba(34,197,94,0.2)",
+                                                                            borderRadius: 8,
+                                                                            padding:
+                                                                                "12px 14px",
+                                                                            display:
+                                                                                "flex",
+                                                                            alignItems:
+                                                                                "center",
+                                                                            gap: 10,
+                                                                        }}
+                                                                    >
+                                                                        <svg
+                                                                            viewBox="0 0 18 18"
+                                                                            fill="none"
+                                                                            stroke="currentColor"
+                                                                            strokeWidth="1.7"
+                                                                            strokeLinecap="round"
+                                                                            style={{
+                                                                                width: 18,
+                                                                                height: 18,
+                                                                                color: "var(--green)",
+                                                                                flexShrink: 0,
+                                                                            }}
+                                                                        >
+                                                                            <path d="M2 9l5 5 9-9" />
+                                                                        </svg>
+                                                                        <div>
+                                                                            <div
+                                                                                style={{
+                                                                                    fontSize: 13,
+                                                                                    fontWeight: 600,
+                                                                                    color: "var(--green)",
+                                                                                }}
+                                                                            >
+                                                                                Converted
+                                                                                to
+                                                                                Shipment
+                                                                            </div>
+                                                                            <div
+                                                                                style={{
+                                                                                    fontSize: 12,
+                                                                                    color: "var(--text-3)",
+                                                                                    marginTop: 2,
+                                                                                }}
+                                                                            >
+                                                                                Shipment
+                                                                                ID:{" "}
+                                                                                <span
+                                                                                    style={{
+                                                                                        fontFamily:
+                                                                                            "DM Mono, monospace",
+                                                                                        color: "var(--blue)",
+                                                                                    }}
+                                                                                >
+                                                                                    {
+                                                                                        bkDetail.convertedTo
+                                                                                    }
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        {bkDetail.status ===
+                                                            "rejected" && (
+                                                            <div className="dp-section">
+                                                                <div
+                                                                    style={{
+                                                                        background:
+                                                                            "var(--red-dim)",
+                                                                        border: "1px solid rgba(239,68,68,0.2)",
+                                                                        borderRadius: 8,
+                                                                        padding:
+                                                                            "12px 14px",
+                                                                        display:
+                                                                            "flex",
+                                                                        alignItems:
+                                                                            "center",
+                                                                        gap: 10,
+                                                                    }}
+                                                                >
+                                                                    <svg
+                                                                        viewBox="0 0 18 18"
+                                                                        fill="none"
+                                                                        stroke="currentColor"
+                                                                        strokeWidth="1.7"
+                                                                        strokeLinecap="round"
+                                                                        style={{
+                                                                            width: 18,
+                                                                            height: 18,
+                                                                            color: "var(--red)",
+                                                                            flexShrink: 0,
+                                                                        }}
+                                                                    >
+                                                                        <path d="M5 5l8 8M13 5l-8 8" />
+                                                                    </svg>
+                                                                    <div>
+                                                                        <div
+                                                                            style={{
+                                                                                fontSize: 13,
+                                                                                fontWeight: 600,
+                                                                                color: "var(--red)",
+                                                                            }}
+                                                                        >
+                                                                            Booking
+                                                                            Rejected
+                                                                        </div>
+                                                                        <div
+                                                                            style={{
+                                                                                fontSize: 12,
+                                                                                color: "var(--text-3)",
+                                                                                marginTop: 2,
+                                                                            }}
+                                                                        >
+                                                                            This
+                                                                            booking
+                                                                            request
+                                                                            was
+                                                                            declined.
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        <div className="dp-section">
+                                                            <div
+                                                                className="dp-section-title"
+                                                                style={{
+                                                                    marginBottom:
+                                                                        8,
+                                                                }}
+                                                            >
+                                                                Internal Notes
+                                                            </div>
+                                                            <textarea
+                                                                style={{
+                                                                    width: "100%",
+                                                                    background:
+                                                                        "var(--bg-3)",
+                                                                    border: "1px solid var(--border-strong)",
+                                                                    borderRadius: 7,
+                                                                    padding:
+                                                                        "8px 10px",
+                                                                    fontFamily:
+                                                                        "inherit",
+                                                                    fontSize: 12.5,
+                                                                    color: "var(--text-1)",
+                                                                    outline:
+                                                                        "none",
+                                                                    resize: "vertical",
+                                                                    minHeight: 64,
+                                                                    lineHeight:
+                                                                        1.5,
+                                                                }}
+                                                                placeholder="Add ops note…"
+                                                                value={
+                                                                    bkDetail.notes
+                                                                }
+                                                                onChange={(e) => {
+                                                                    const val =
+                                                                        e.target
+                                                                            .value;
+                                                                    setBookings(
+                                                                        (
+                                                                            prev,
+                                                                        ) =>
+                                                                            prev.map(
+                                                                                (
+                                                                                    x,
+                                                                                ) =>
+                                                                                    x.id ===
+                                                                                    bkDetail.id
+                                                                                        ? {
+                                                                                              ...x,
+                                                                                              notes: val,
+                                                                                          }
+                                                                                        : x,
+                                                                            ),
+                                                                    );
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <div className="dp-section">
+                                                            <div className="dp-section-title">
+                                                                Actions
+                                                            </div>
+                                                            <div
+                                                                style={{
+                                                                    display:
+                                                                        "flex",
+                                                                    flexDirection:
+                                                                        "column",
+                                                                    gap: 8,
+                                                                }}
+                                                            >
+                                                                {(bkDetail.status ===
+                                                                    "new" ||
+                                                                    bkDetail.status ===
+                                                                        "reviewing" ||
+                                                                    bkDetail.status ===
+                                                                        "approved") && (
+                                                                    <button
+                                                                        className="btn primary"
+                                                                        style={{
+                                                                            justifyContent:
+                                                                                "center",
+                                                                            width: "100%",
+                                                                        }}
+                                                                        onClick={() =>
+                                                                            openConvertModal(
+                                                                                bkDetail.id,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <svg
+                                                                            viewBox="0 0 14 14"
+                                                                            fill="none"
+                                                                            stroke="currentColor"
+                                                                            strokeWidth="1.8"
+                                                                            strokeLinecap="round"
+                                                                            style={{
+                                                                                width: 14,
+                                                                                height: 14,
+                                                                            }}
+                                                                        >
+                                                                            <path d="M7 1v12M1 7h12" />
+                                                                        </svg>
+                                                                        Convert
+                                                                        to
+                                                                        Shipment
+                                                                    </button>
+                                                                )}
+                                                                <div
+                                                                    style={{
+                                                                        display:
+                                                                            "grid",
+                                                                        gridTemplateColumns:
+                                                                            "1fr 1fr",
+                                                                        gap: 8,
+                                                                    }}
+                                                                >
+                                                                    {bkDetail.status !==
+                                                                        "reviewing" &&
+                                                                        bkDetail.status !==
+                                                                            "converted" &&
+                                                                        bkDetail.status !==
+                                                                            "rejected" && (
+                                                                            <button
+                                                                                className="btn"
+                                                                                style={{
+                                                                                    justifyContent:
+                                                                                        "center",
+                                                                                }}
+                                                                                onClick={() =>
+                                                                                    bkUpdateStatus(
+                                                                                        bkDetail.id,
+                                                                                        "reviewing",
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                Mark
+                                                                                Reviewing
+                                                                            </button>
+                                                                        )}
+                                                                    {bkDetail.status !==
+                                                                        "approved" &&
+                                                                        bkDetail.status !==
+                                                                            "converted" &&
+                                                                        bkDetail.status !==
+                                                                            "rejected" && (
+                                                                            <button
+                                                                                className="btn"
+                                                                                style={{
+                                                                                    justifyContent:
+                                                                                        "center",
+                                                                                    color: "var(--green)",
+                                                                                }}
+                                                                                onClick={() =>
+                                                                                    bkUpdateStatus(
+                                                                                        bkDetail.id,
+                                                                                        "approved",
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                Approve
+                                                                            </button>
+                                                                        )}
+                                                                    {bkDetail.status !==
+                                                                        "rejected" &&
+                                                                        bkDetail.status !==
+                                                                            "converted" && (
+                                                                            <button
+                                                                                className="btn"
+                                                                                style={{
+                                                                                    justifyContent:
+                                                                                        "center",
+                                                                                    color: "var(--red)",
+                                                                                }}
+                                                                                onClick={() =>
+                                                                                    bkUpdateStatus(
+                                                                                        bkDetail.id,
+                                                                                        "rejected",
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                Reject
+                                                                            </button>
+                                                                        )}
+                                                                </div>
+                                                                {bkDetail.status ===
+                                                                    "converted" &&
+                                                                    bkDetail.convertedTo && (
+                                                                        <button
+                                                                            className="btn"
+                                                                            style={{
+                                                                                justifyContent:
+                                                                                    "center",
+                                                                                color: "var(--blue)",
+                                                                            }}
+                                                                            onClick={() => {
+                                                                                setPage(
+                                                                                    "shipments",
+                                                                                );
+                                                                                setSearch(
+                                                                                    bkDetail.convertedTo ??
+                                                                                        "",
+                                                                                );
+                                                                                setBkSelectedId(
+                                                                                    null,
+                                                                                );
+                                                                            }}
+                                                                        >
+                                                                            View
+                                                                            in
+                                                                            Shipments
+                                                                            →
+                                                                        </button>
+                                                                    )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -3537,6 +5777,248 @@ export default function Dashboard() {
                             }}
                         >
                             Confirm
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                className={`modal-overlay ${convertModalOpen ? "open" : ""}`}
+                onClick={(e) => {
+                    if (e.target === e.currentTarget) closeConvertModal();
+                }}
+            >
+                <div className="modal" style={{ width: 600 }}>
+                    <div className="modal-header">
+                        <div>
+                            <span className="modal-title">
+                                Convert Booking to Shipment
+                            </span>
+                            <div
+                                style={{
+                                    fontSize: 12,
+                                    color: "var(--text-3)",
+                                    marginTop: 2,
+                                }}
+                            >
+                                Review and confirm details before creating the
+                                shipment
+                            </div>
+                        </div>
+                        <button className="dp-close" onClick={closeConvertModal}>
+                            <svg
+                                viewBox="0 0 13 13"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                strokeLinecap="round"
+                            >
+                                <path d="M1 1l11 11M12 1L1 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div className="modal-body">
+                        <div
+                            style={{
+                                background: "var(--blue-dim)",
+                                border: "1px solid var(--blue-border)",
+                                borderRadius: 9,
+                                padding: "12px 16px",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 14,
+                            }}
+                        >
+                            <svg
+                                viewBox="0 0 18 18"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.7"
+                                strokeLinecap="round"
+                                style={{
+                                    width: 20,
+                                    height: 20,
+                                    color: "var(--blue)",
+                                    flexShrink: 0,
+                                }}
+                            >
+                                <rect x="2" y="3" width="14" height="13" rx="1.5" />
+                                <path d="M2 7h14" />
+                                <path d="M6 1v4M12 1v4" />
+                            </svg>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <div
+                                    style={{
+                                        fontSize: 11,
+                                        color: "var(--blue)",
+                                        fontWeight: 600,
+                                        textTransform: "uppercase",
+                                        letterSpacing: ".06em",
+                                    }}
+                                >
+                                    Source Booking
+                                </div>
+                                <div
+                                    style={{
+                                        fontSize: 13,
+                                        fontWeight: 600,
+                                        marginTop: 2,
+                                    }}
+                                >
+                                    <span
+                                        style={{
+                                            fontFamily: "DM Mono, monospace",
+                                            color: "var(--blue)",
+                                        }}
+                                    >
+                                        {convertBookingId ?? "—"}
+                                    </span>
+                                    {" · "}
+                                    <span>{convertForm.customer || "—"}</span>
+                                </div>
+                                <div
+                                    style={{
+                                        fontSize: 12,
+                                        color: "var(--text-3)",
+                                        marginTop: 1,
+                                    }}
+                                >
+                                    <span>
+                                        {convertForm.origin || "—"} →{" "}
+                                        {convertForm.destination || "—"}
+                                    </span>
+                                    {" · "}
+                                    <span>
+                                        {convertForm.weight
+                                            ? `${Number(convertForm.weight).toLocaleString()} kg`
+                                            : "—"}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="form-divider">Route</div>
+                        <div className="form-row">
+                            <FormInput
+                                label="Origin"
+                                value={convertForm.origin}
+                                onChange={(v) =>
+                                    setConvertForm((p) => ({
+                                        ...p,
+                                        origin: v,
+                                    }))
+                                }
+                            />
+                            <FormInput
+                                label="Destination"
+                                value={convertForm.destination}
+                                onChange={(v) =>
+                                    setConvertForm((p) => ({
+                                        ...p,
+                                        destination: v,
+                                    }))
+                                }
+                            />
+                            <FormSelect
+                                label="Transport Mode"
+                                value={convertForm.mode}
+                                onChange={(v) =>
+                                    setConvertForm((p) => ({
+                                        ...p,
+                                        mode: v as Mode,
+                                    }))
+                                }
+                                options={["Sea", "Air", "Road", "Rail"]}
+                            />
+                            <FormInput
+                                label="ETA"
+                                type="date"
+                                value={convertForm.eta}
+                                onChange={(v) =>
+                                    setConvertForm((p) => ({ ...p, eta: v }))
+                                }
+                            />
+                        </div>
+                        <div className="form-divider">Cargo</div>
+                        <div className="form-row">
+                            <FormInput
+                                label="Customer"
+                                value={convertForm.customer}
+                                onChange={(v) =>
+                                    setConvertForm((p) => ({
+                                        ...p,
+                                        customer: v,
+                                    }))
+                                }
+                            />
+                            <FormInput
+                                label="Weight (kg)"
+                                type="number"
+                                value={convertForm.weight}
+                                onChange={(v) =>
+                                    setConvertForm((p) => ({
+                                        ...p,
+                                        weight: v,
+                                    }))
+                                }
+                            />
+                            <FormSelect
+                                label="Cargo Type"
+                                value={convertForm.type}
+                                onChange={(v) =>
+                                    setConvertForm((p) => ({ ...p, type: v }))
+                                }
+                                options={BK_TYPES}
+                            />
+                            <FormInput
+                                label="Containers"
+                                type="number"
+                                value={convertForm.containers}
+                                onChange={(v) =>
+                                    setConvertForm((p) => ({
+                                        ...p,
+                                        containers: v,
+                                    }))
+                                }
+                            />
+                        </div>
+                        <div className="form-divider">Contact</div>
+                        <div className="form-row">
+                            <FormInput
+                                label="Contact Name"
+                                value={convertForm.contact}
+                                onChange={(v) =>
+                                    setConvertForm((p) => ({
+                                        ...p,
+                                        contact: v,
+                                    }))
+                                }
+                            />
+                            <FormInput
+                                label="Contact Email"
+                                type="email"
+                                value={convertForm.email}
+                                onChange={(v) =>
+                                    setConvertForm((p) => ({ ...p, email: v }))
+                                }
+                            />
+                        </div>
+                    </div>
+                    <div className="modal-footer">
+                        <button className="btn" onClick={closeConvertModal}>
+                            Cancel
+                        </button>
+                        <button className="btn primary" onClick={confirmConvert}>
+                            <svg
+                                viewBox="0 0 14 14"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                strokeLinecap="round"
+                                style={{ width: 13, height: 13 }}
+                            >
+                                <path d="M7 1v12M1 7h12" />
+                            </svg>
+                            Create Shipment
                         </button>
                     </div>
                 </div>
