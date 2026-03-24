@@ -1,5 +1,7 @@
 import { Head } from "@inertiajs/react";
 import { useEffect, useMemo, useState } from "react";
+import type { ApexOptions } from "apexcharts";
+import ReactApexChart from "react-apexcharts";
 
 type Status = "transit" | "delivered" | "pending" | "delayed" | "customs";
 type Mode = "Sea" | "Air" | "Road" | "Rail";
@@ -131,18 +133,19 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text-1);font-fam
 .card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
 .card-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);} .card-title{font-size:14px;font-weight:600;}
 .card-subtitle{font-size:12px;color:var(--text-3);margin-top:1px;}
-.two-col{display:grid;grid-template-columns:1fr 340px;gap:14px;} .bar-chart{display:flex;align-items:flex-end;gap:6px;height:100px;}
+.two-col{display:grid;grid-template-columns:1.06fr 0.94fr;gap:14px;}
 .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
-.chart-wrap{padding:16px 20px 8px;}
-.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;}
-.bar-fill{width:100%;border-radius:4px 4px 0 0;background:var(--blue-dim);border-top:2px solid var(--blue);min-height:2px;}
-.bar-fill.highlight{background:rgba(59,130,246,0.25);}
+.cargo-volume-card{display:flex;flex-direction:column;height:100%;}
+.chart-wrap{padding:12px 14px 8px;}
+.cargo-volume-card .chart-wrap{flex:1;min-height:230px;}
+.apex-cargo{width:100%;height:100%;}
 .route-item{display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--border);transition:background var(--transition);cursor:pointer;} .route-item:last-child{border-bottom:none;}
 .route-item:hover{background:var(--bg-3);}
 .route-list{display:flex;flex-direction:column;}
 .route-info{flex:1;min-width:0;}
 .route-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;} .route-name{font-size:13px;font-weight:500;} .route-meta{font-size:11.5px;color:var(--text-3);} .route-count{font-family:'DM Mono',monospace;font-size:12px;color:var(--text-2);font-weight:500;}
 .chart-legend{display:flex;gap:16px;padding:10px 20px 16px;}
+.cargo-volume-card .chart-legend{margin-top:auto;}
 .legend-item{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-3);}
 .legend-dot{width:8px;height:8px;border-radius:2px;}
 .mini-stat-row{display:flex;flex-direction:column;}
@@ -185,7 +188,8 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text-1);font-fam
 .confirm-modal{background:var(--bg-2);border:1px solid var(--border-strong);border-radius:12px;width:380px;max-width:100%;padding:24px;} .confirm-modal h3{font-size:15px;font-weight:600;margin:0 0 8px;} .confirm-modal p{font-size:13px;color:var(--text-2);line-height:1.6;margin:0 0 20px;}
 .toast-wrap{position:fixed;bottom:24px;right:24px;z-index:200;display:flex;flex-direction:column;gap:8px;} .toast{background:var(--bg-3);border:1px solid var(--border-strong);border-radius:8px;padding:11px 15px;font-size:13px;color:var(--text-1);display:flex;align-items:center;gap:10px;min-width:240px;} .toast.success{border-left:3px solid var(--green);} .toast.error{border-left:3px solid var(--red);} .toast.info{border-left:3px solid var(--blue);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
-@media (max-width:1200px){.stat-grid{grid-template-columns:repeat(2,1fr)}.two-col{grid-template-columns:1fr}}
+@media (max-width:1200px){.stat-grid{grid-template-columns:repeat(2,1fr)}.two-col{grid-template-columns:1.06fr 0.94fr;width:100%;margin:0}}
+@media (max-width:980px){.two-col{grid-template-columns:1fr}}
 @media (max-width:1100px){.three-col{grid-template-columns:1fr 1fr;}}
 @media (max-width:760px){.sidebar{display:none}.topbar{padding:0 12px}.content{padding:12px}.stat-grid{grid-template-columns:1fr}}
 `;
@@ -702,6 +706,83 @@ export default function Dashboard() {
     >([]);
 
     const PER = 10;
+    const deliveredChart = useMemo(
+        () =>
+            CHART.map((v, i) =>
+                Math.max(24, Math.round(v * 0.64 + (i % 2 ? 4 : 0))),
+            ),
+        [],
+    );
+    const cargoSeries = useMemo(
+        () => [
+            { name: "Dispatched", data: CHART },
+            { name: "Delivered", data: deliveredChart },
+        ],
+        [deliveredChart],
+    );
+    const cargoOptions = useMemo<ApexOptions>(
+        () => ({
+            chart: {
+                type: "bar",
+                background: "transparent",
+                toolbar: { show: false },
+                fontFamily: "DM Sans, sans-serif",
+            },
+            theme: { mode: theme === "dark" ? "dark" : "light" },
+            colors: ["#3B82F6", "#22C55E"],
+            plotOptions: {
+                bar: {
+                    horizontal: false,
+                    borderRadius: 6,
+                    columnWidth: "42%",
+                },
+            },
+            dataLabels: { enabled: false },
+            stroke: { show: false },
+            xaxis: {
+                categories: CHART.map((_, i) => `W${i + 1}`),
+                axisTicks: { show: false },
+                axisBorder: { show: false },
+                labels: {
+                    style: {
+                        colors: CHART.map(() =>
+                            theme === "dark" ? "#6B7385" : "#9CA3AF",
+                        ),
+                        fontFamily: "DM Mono, monospace",
+                        fontSize: "11px",
+                    },
+                },
+            },
+            yaxis: {
+                show: false,
+            },
+            grid: {
+                borderColor:
+                    theme === "dark"
+                        ? "rgba(255,255,255,0.08)"
+                        : "rgba(0,0,0,0.08)",
+                strokeDashArray: 4,
+                padding: { left: 0, right: 8, top: 0, bottom: -10 },
+            },
+            legend: {
+                show: true,
+                position: "bottom",
+                horizontalAlign: "left",
+                fontSize: "13px",
+                labels: {
+                    colors: theme === "dark" ? "#9BA3B5" : "#4B5563",
+                },
+                markers: {
+                    size: 9,
+                    shape: "square",
+                },
+            },
+            tooltip: {
+                theme: theme === "dark" ? "dark" : "light",
+            },
+        }),
+        [theme],
+    );
 
     useEffect(() => {
         document.documentElement.setAttribute("data-theme", theme);
@@ -1509,7 +1590,7 @@ export default function Dashboard() {
                             </div>
 
                             <div className="two-col">
-                                <div className="card">
+                                <div className="card cargo-volume-card">
                                     <div className="card-header">
                                         <div>
                                             <div className="card-title">
@@ -1548,43 +1629,13 @@ export default function Dashboard() {
                                         </div>
                                     </div>
                                     <div className="chart-wrap">
-                                        <div className="bar-chart">
-                                            {CHART.map((v, i) => (
-                                                <div
-                                                    key={i}
-                                                    className="bar-col"
-                                                >
-                                                    <div
-                                                        className={`bar-fill ${i === 4 ? "highlight" : ""}`}
-                                                        style={{
-                                                            height: v,
-                                                        }}
-                                                    />
-                                                    <div className="bar-label">
-                                                        W{i + 1}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div className="chart-legend">
-                                        <div className="legend-item">
-                                            <div
-                                                className="legend-dot"
-                                                style={{
-                                                    background: "var(--blue)",
-                                                }}
+                                        <div className="apex-cargo">
+                                            <ReactApexChart
+                                                options={cargoOptions}
+                                                series={cargoSeries}
+                                                type="bar"
+                                                height="100%"
                                             />
-                                            Dispatched
-                                        </div>
-                                        <div className="legend-item">
-                                            <div
-                                                className="legend-dot"
-                                                style={{
-                                                    background: "var(--green)",
-                                                }}
-                                            />
-                                            Delivered
                                         </div>
                                     </div>
                                 </div>
