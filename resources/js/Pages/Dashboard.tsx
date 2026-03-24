@@ -48,6 +48,7 @@ const CSS = `
   --bg:#0F1117; --bg-2:#161923; --bg-3:#1D2230; --bg-4:#242A38;
   --border:rgba(255,255,255,0.07); --border-strong:rgba(255,255,255,0.12);
   --text-1:#F1F3F7; --text-2:#9BA3B5; --text-3:#6B7385;
+    --scroll-track:#131722; --scroll-thumb:#323A4F; --scroll-thumb-hover:#425074;
   --green:#22C55E; --amber:#F59E0B; --red:#EF4444; --purple:#A78BFA;
   --green-dim:rgba(34,197,94,0.1); --amber-dim:rgba(245,158,11,0.1);
   --red-dim:rgba(239,68,68,0.1); --purple-dim:rgba(167,139,250,0.1);
@@ -58,9 +59,16 @@ const CSS = `
   --bg:#F4F5F8; --bg-2:#FFFFFF; --bg-3:#F0F1F5; --bg-4:#E8EAEF;
   --border:rgba(0,0,0,0.07); --border-strong:rgba(0,0,0,0.12);
   --text-1:#111827; --text-2:#4B5563; --text-3:#9CA3AF;
+    --scroll-track:#ECEFF4; --scroll-thumb:#C2CBD8; --scroll-thumb-hover:#A8B3C3;
   --blue-dim:rgba(59,130,246,0.08);
 }
 html,body{height:100%;margin:0;background:var(--bg);color:var(--text-1);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.5;overflow:hidden;}
+/* Theme-aware scrollbars for both dark and light modes */
+*{scrollbar-width:thin;scrollbar-color:var(--scroll-thumb) var(--scroll-track);}
+*::-webkit-scrollbar{width:10px;height:10px;}
+*::-webkit-scrollbar-track{background:var(--scroll-track);}
+*::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:8px;border:2px solid var(--scroll-track);}
+*::-webkit-scrollbar-thumb:hover{background:var(--scroll-thumb-hover);}
 .shell{display:flex;height:100vh;background:var(--bg);color:var(--text-1);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.5;overflow:hidden;}
 .sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);height:100vh;background:var(--bg-2);border-right:1px solid var(--border);display:flex;flex-direction:column;transition:width var(--transition),min-width var(--transition);overflow:hidden;position:relative;z-index:10;}
 .sidebar.collapsed{width:var(--sidebar-collapsed);min-width:var(--sidebar-collapsed);}
@@ -104,7 +112,6 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text-1);font-fam
 .btn:hover{background:var(--bg-4);}
 .btn.primary{background:var(--blue);border-color:var(--blue);color:white;}
 .btn.primary:hover{background:#2563EB;border-color:#2563EB;}
-.btn.active-filter{background:var(--blue-dim);border-color:var(--blue-border);color:var(--blue);}
 .btn.danger{background:var(--red-dim);border-color:rgba(239,68,68,0.3);color:var(--red);}
 .page{display:none;flex:1;overflow:hidden;flex-direction:column;}
 .page.active{display:flex;}
@@ -132,14 +139,10 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text-1);font-fam
 .filter-tabs{display:flex;gap:4px;background:var(--bg-3);border:1px solid var(--border);border-radius:8px;padding:3px;}
 .filter-tab{padding:5px 12px;border-radius:6px;font-size:12.5px;font-weight:500;cursor:pointer;color:var(--text-2);background:transparent;border:none;}
 .filter-tab.active{background:var(--bg-2);color:var(--text-1);}
-.filter-panel{display:none;padding:14px 16px;gap:12px;flex-wrap:wrap;align-items:flex-end;border-bottom:1px solid var(--border);} .filter-panel.open{display:flex;}
-.filter-group{display:flex;flex-direction:column;gap:5px;min-width:130px;} .filter-group label{font-size:11.5px;font-weight:500;color:var(--text-3);}
 .form-input,.form-select,.form-textarea{background:var(--bg-3);border:1px solid var(--border-strong);border-radius:7px;padding:8px 12px;font-family:inherit;font-size:13px;color:var(--text-1);outline:none;transition:border-color var(--transition);}
 .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--blue);}
 .form-select{cursor:pointer;appearance:none;padding-right:30px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%236B7385' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;}
 .form-textarea{resize:vertical;min-height:72px;}
-.filter-input,.filter-select{background:var(--bg-3);border:1px solid var(--border-strong);border-radius:7px;padding:6px 10px;font-family:inherit;font-size:12.5px;color:var(--text-1);outline:none;}
-.filter-select{cursor:pointer;appearance:none;padding-right:28px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%236B7385' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;}
 .data-table{width:100%;border-collapse:collapse;} .data-table thead th{text-align:left;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);padding:10px 16px;border-bottom:1px solid var(--border);white-space:nowrap;}
 .data-table tbody tr{border-bottom:1px solid var(--border);transition:background var(--transition);cursor:pointer;} .data-table tbody tr:hover{background:var(--bg-3);} .data-table tbody tr.row-sel{background:var(--blue-dim);} .data-table td{padding:11px 16px;font-size:13px;vertical-align:middle;}
 .td-mono{font-family:'DM Mono',monospace;font-size:12px;color:var(--blue);font-weight:500;} .badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:500;padding:3px 9px;border-radius:20px;white-space:nowrap;} .badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
@@ -664,14 +667,6 @@ export default function Dashboard() {
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [menuId, setMenuId] = useState<string | null>(null);
     const [detailId, setDetailId] = useState<string | null>(null);
-    const [filterOpen, setFilterOpen] = useState(false);
-    const [filters, setFilters] = useState({
-        mode: "",
-        origin: "",
-        from: "",
-        to: "",
-        weight: "",
-    });
     const [modalOpen, setModalOpen] = useState(false);
     const [editId, setEditId] = useState<string | null>(null);
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -715,15 +710,8 @@ export default function Dashboard() {
 
     const filtered = useMemo(() => {
         const q = search.toLowerCase().trim();
-        const minW = Number(filters.weight) || 0;
         const out = db.filter((s) => {
             if (statusFlt !== "all" && s.status !== statusFlt) return false;
-            if (filters.mode && s.mode !== filters.mode) return false;
-            if (filters.origin && s.originCountry !== filters.origin)
-                return false;
-            if (filters.from && s.eta < filters.from) return false;
-            if (filters.to && s.eta > filters.to) return false;
-            if (minW > 0 && s.weight < minW) return false;
             if (
                 q &&
                 !`${s.id} ${s.origin} ${s.destination} ${s.customer} ${s.mode} ${s.originCountry} ${s.destCountry}`
@@ -743,7 +731,7 @@ export default function Dashboard() {
         });
 
         return out;
-    }, [db, filters, search, sortCol, sortDir, statusFlt]);
+    }, [db, search, sortCol, sortDir, statusFlt]);
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / PER));
     const pageRows = useMemo(
@@ -779,13 +767,6 @@ export default function Dashboard() {
         setConfirmMsg(msg);
         setConfirmAction(() => action);
         setConfirmOpen(true);
-    };
-
-    const clearFilters = () => {
-        setFilters({ mode: "", origin: "", from: "", to: "", weight: "" });
-        setSearch("");
-        setStatusFlt("all");
-        setCurPage(1);
     };
 
     const toggleSort = (col: keyof Shipment) => {
@@ -1595,22 +1576,6 @@ export default function Dashboard() {
                                             style={{ width: "100%" }}
                                         />
                                     </div>
-                                    <button
-                                        className={`btn ${filterOpen ? "active-filter" : ""}`}
-                                        onClick={() => setFilterOpen((v) => !v)}
-                                    >
-                                        <svg
-                                            viewBox="0 0 14 14"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="1.6"
-                                            strokeLinecap="round"
-                                            style={{ width: 14, height: 14 }}
-                                        >
-                                            <path d="M1 3h12M3 7h8M5 11h4" />
-                                        </svg>
-                                        Filters
-                                    </button>
                                     <button className="btn" onClick={exportCsv}>
                                         <svg
                                             viewBox="0 0 14 14"
@@ -1642,102 +1607,6 @@ export default function Dashboard() {
                                     </button>
                                 </div>
 
-                                <div
-                                    className={`filter-panel ${filterOpen ? "open" : ""}`}
-                                >
-                                    <div className="filter-group">
-                                        <label>Mode</label>
-                                        <select
-                                            className="filter-select"
-                                            value={filters.mode}
-                                            onChange={(e) => {
-                                                setFilters((p) => ({
-                                                    ...p,
-                                                    mode: e.target.value,
-                                                }));
-                                                setCurPage(1);
-                                            }}
-                                        >
-                                            <option value="">All modes</option>
-                                            <option>Sea</option>
-                                            <option>Air</option>
-                                            <option>Road</option>
-                                            <option>Rail</option>
-                                        </select>
-                                    </div>
-                                    <div className="filter-group">
-                                        <label>Origin Country</label>
-                                        <select
-                                            className="filter-select"
-                                            value={filters.origin}
-                                            onChange={(e) => {
-                                                setFilters((p) => ({
-                                                    ...p,
-                                                    origin: e.target.value,
-                                                }));
-                                                setCurPage(1);
-                                            }}
-                                        >
-                                            <option value="">Any</option>
-                                            {COUNTRIES.map((c) => (
-                                                <option key={c}>{c}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="filter-group">
-                                        <label>ETA From</label>
-                                        <input
-                                            type="date"
-                                            className="filter-input"
-                                            value={filters.from}
-                                            onChange={(e) => {
-                                                setFilters((p) => ({
-                                                    ...p,
-                                                    from: e.target.value,
-                                                }));
-                                                setCurPage(1);
-                                            }}
-                                        />
-                                    </div>
-                                    <div className="filter-group">
-                                        <label>ETA To</label>
-                                        <input
-                                            type="date"
-                                            className="filter-input"
-                                            value={filters.to}
-                                            onChange={(e) => {
-                                                setFilters((p) => ({
-                                                    ...p,
-                                                    to: e.target.value,
-                                                }));
-                                                setCurPage(1);
-                                            }}
-                                        />
-                                    </div>
-                                    <div className="filter-group">
-                                        <label>Min Weight (kg)</label>
-                                        <input
-                                            type="number"
-                                            className="filter-input"
-                                            value={filters.weight}
-                                            onChange={(e) => {
-                                                setFilters((p) => ({
-                                                    ...p,
-                                                    weight: e.target.value,
-                                                }));
-                                                setCurPage(1);
-                                            }}
-                                            placeholder="0"
-                                        />
-                                    </div>
-                                    <button
-                                        className="btn"
-                                        onClick={clearFilters}
-                                    >
-                                        Clear all
-                                    </button>
-                                </div>
-
                                 <div style={{ overflowX: "auto" }}>
                                     {filtered.length === 0 ? (
                                         <div className="empty-state">
@@ -1764,10 +1633,9 @@ export default function Dashboard() {
                                                 }}
                                             >
                                                 No shipments match your current
-                                                filters.
+                                                view.
                                                 <br />
-                                                Try adjusting search or filter
-                                                criteria.
+                                                Try adjusting search criteria.
                                             </p>
                                         </div>
                                     ) : (
