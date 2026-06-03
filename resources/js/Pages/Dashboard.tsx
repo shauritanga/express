@@ -1,5 +1,6 @@
 import { Head } from "@inertiajs/react";
 import { useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import type { ApexOptions } from "apexcharts";
 import ReactApexChart from "react-apexcharts";
 
@@ -296,7 +297,7 @@ const INITIAL_DB: Shipment[] = [
         eta: "2025-03-26",
         status: "transit",
         cost: 5800,
-        container: "AWB-72819234",
+        container: "025500000001",
         notes: "",
         created: "2025-03-15",
     },
@@ -347,7 +348,7 @@ const INITIAL_DB: Shipment[] = [
         eta: "2025-03-27",
         status: "pending",
         cost: 3200,
-        container: "AWB-88239021",
+        container: "025500000002",
         notes: "Awaiting pickup confirmation.",
         created: "2025-03-18",
     },
@@ -364,7 +365,7 @@ const INITIAL_DB: Shipment[] = [
         eta: "2025-04-01",
         status: "transit",
         cost: 7600,
-        container: "AWB-44820192",
+        container: "025500000003",
         notes: "",
         created: "2025-03-12",
     },
@@ -398,7 +399,7 @@ const INITIAL_DB: Shipment[] = [
         eta: "2025-03-25",
         status: "delivered",
         cost: 44000,
-        container: "AWB-10293847",
+        container: "025500000004",
         notes: "Aerospace components.",
         created: "2025-03-05",
     },
@@ -449,7 +450,7 @@ const INITIAL_DB: Shipment[] = [
         eta: "2025-03-29",
         status: "pending",
         cost: 2900,
-        container: "AWB-55671234",
+        container: "025500000005",
         notes: "Waiting for export license.",
         created: "2025-03-20",
     },
@@ -483,7 +484,7 @@ const INITIAL_DB: Shipment[] = [
         eta: "2025-03-31",
         status: "transit",
         cost: 22000,
-        container: "AWB-99120034",
+        container: "025500000006",
         notes: "High-value precision equipment.",
         created: "2025-03-17",
     },
@@ -551,7 +552,7 @@ const INITIAL_DB: Shipment[] = [
         eta: "2025-03-28",
         status: "delivered",
         cost: 5500,
-        container: "AWB-31190234",
+        container: "025500000007",
         notes: "",
         created: "2025-03-14",
     },
@@ -602,7 +603,7 @@ const INITIAL_DB: Shipment[] = [
         eta: "2025-04-03",
         status: "transit",
         cost: 13200,
-        container: "AWB-66234891",
+        container: "025500000008",
         notes: "",
         created: "2025-03-16",
     },
@@ -636,7 +637,7 @@ const INITIAL_DB: Shipment[] = [
         eta: "2025-04-06",
         status: "transit",
         cost: 16500,
-        container: "AWB-77823001",
+        container: "025500000009",
         notes: "Aircraft components.",
         created: "2025-03-13",
     },
@@ -670,7 +671,7 @@ const INITIAL_DB: Shipment[] = [
         eta: "2025-04-05",
         status: "customs",
         cost: 19800,
-        container: "AWB-48223910",
+        container: "025500000010",
         notes: "Customs query on declared value.",
         created: "2025-03-19",
     },
@@ -4470,8 +4471,11 @@ export default function Dashboard() {
                                         </div>
                                     )}
 
-                                    <div
-                                        className={`bk-detail ${bkDetail ? "open" : ""}`}
+                                    <SideDrawer
+                                        open={!!bkDetail}
+                                        onClose={() => setBkSelectedId(null)}
+                                        panelClassName="bk-detail"
+                                        withOverlay={false}
                                     >
                                         {bkDetail && (
                                             <>
@@ -5154,7 +5158,7 @@ export default function Dashboard() {
                                                 </div>
                                             </>
                                         )}
-                                    </div>
+                                    </SideDrawer>
                                 </div>
                             </div>
                         </div>
@@ -5162,11 +5166,11 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            <div
-                className={`detail-overlay ${detail ? "open" : ""}`}
-                onClick={() => setDetailId(null)}
-            />
-            <div className={`detail-panel ${detail ? "open" : ""}`}>
+            <SideDrawer
+                open={!!detail}
+                onClose={() => setDetailId(null)}
+                panelClassName="detail-panel"
+            >
                 {detail && (
                     <>
                         <div className="dp-header">
@@ -5569,9 +5573,9 @@ export default function Dashboard() {
                         </div>
                     </>
                 )}
-            </div>
+            </SideDrawer>
 
-            <div className={`modal-overlay ${modalOpen ? "open" : ""}`}>
+            <ModalOverlay open={modalOpen}>
                 <div className="modal">
                     <div className="modal-header">
                         <span className="modal-title">
@@ -5752,9 +5756,9 @@ export default function Dashboard() {
                         </button>
                     </div>
                 </div>
-            </div>
+            </ModalOverlay>
 
-            <div className={`modal-overlay ${confirmOpen ? "open" : ""}`}>
+            <ModalOverlay open={confirmOpen}>
                 <div className="confirm-modal">
                     <h3>{confirmTitle}</h3>
                     <p>{confirmMsg}</p>
@@ -5782,13 +5786,11 @@ export default function Dashboard() {
                         </button>
                     </div>
                 </div>
-            </div>
+            </ModalOverlay>
 
-            <div
-                className={`modal-overlay ${convertModalOpen ? "open" : ""}`}
-                onClick={(e) => {
-                    if (e.target === e.currentTarget) closeConvertModal();
-                }}
+            <ModalOverlay
+                open={convertModalOpen}
+                onBackdropClick={closeConvertModal}
             >
                 <div className="modal" style={{ width: 600 }}>
                     <div className="modal-header">
@@ -6024,7 +6026,7 @@ export default function Dashboard() {
                         </button>
                     </div>
                 </div>
-            </div>
+            </ModalOverlay>
 
             <div className="toast-wrap">
                 {toasts.map((t) => (
@@ -6046,6 +6048,55 @@ export default function Dashboard() {
                 style={{ left: navTip.x, top: navTip.y }}
             >
                 {navTip.text}
+            </div>
+        </>
+    );
+}
+
+function ModalOverlay({
+    open,
+    onBackdropClick,
+    children,
+}: {
+    open: boolean;
+    onBackdropClick?: () => void;
+    children: ReactNode;
+}) {
+    return (
+        <div
+            className={`modal-overlay ${open ? "open" : ""}`}
+            onClick={(e) => {
+                if (e.target === e.currentTarget) onBackdropClick?.();
+            }}
+        >
+            {children}
+        </div>
+    );
+}
+
+function SideDrawer({
+    open,
+    onClose,
+    panelClassName,
+    withOverlay = true,
+    children,
+}: {
+    open: boolean;
+    onClose: () => void;
+    panelClassName: string;
+    withOverlay?: boolean;
+    children: ReactNode;
+}) {
+    return (
+        <>
+            {withOverlay && (
+                <div
+                    className={`detail-overlay ${open ? "open" : ""}`}
+                    onClick={onClose}
+                />
+            )}
+            <div className={`${panelClassName} ${open ? "open" : ""}`.trim()}>
+                {children}
             </div>
         </>
     );
